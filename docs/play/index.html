@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Every number base, unit and timezone conversion on one page, with the working shown.">
+<meta name="theme-color" content="#0f1115">
+<title>Base Bench — every base, unit and timezone, with the working shown</title>
+<style>
+  :root{--bg:#0f1115;--card:#171a21;--ink:#e7e9ee;--mut:#9aa3b2;--line:#252a34;--acc:#22c55e;--warn:#f59e0b;--bad:#ef4444}
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-text-size-adjust:100%}
+  header,main,footer{max-width:760px;margin:0 auto;padding:18px 20px}
+  h1{margin:0 0 2px;font-size:22px;letter-spacing:-.01em}
+  h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);margin:0 0 10px;font-weight:600}
+  .mut{color:var(--mut)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:12px 0}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media (max-width:520px){.grid{grid-template-columns:1fr}}
+  label{display:block;font-size:12px;color:var(--mut);margin-bottom:4px;letter-spacing:.03em}
+  input,select,button{font:inherit;color:var(--ink);background:#0c0e12;border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%}
+  input{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.02em}
+  input:focus,select:focus,button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+  button{background:var(--acc);color:#06210f;border:0;font-weight:600;cursor:pointer;width:auto;padding:9px 14px}
+  button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);font-weight:500}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:end}
+  .row > div{flex:1 1 120px}
+  .err{color:var(--bad);font-size:13px;min-height:20px}
+  ol.steps{margin:8px 0 0;padding-left:20px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;color:var(--mut)}
+  ol.steps li{margin:2px 0}
+  .out{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:15px;word-break:break-all}
+  .big{font-size:20px;font-weight:600}
+  kbd{background:#0c0e12;border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:12px;font-family:inherit}
+  footer{color:var(--mut);font-size:13px}
+  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;background:#1f2530;border:1px solid var(--line);border-radius:10px;padding:8px 14px;font-size:14px;opacity:0;transition:opacity .2s}
+  .toast.on{opacity:1}
+  #help{display:none}
+  #help.on{display:block}
+</style>
+</head>
+<body>
+<header>
+  <h1>Base Bench</h1>
+  <p class="mut">Every number base, unit and timezone on one page — and the working, so you can check it.</p>
+</header>
+
+<main>
+  <section class="card" aria-labelledby="h-bases">
+    <h2 id="h-bases">Number bases</h2>
+    <div class="grid">
+      <div><label for="dec">decimal</label><input id="dec" inputmode="numeric" autocomplete="off" value="255" aria-describedby="baseErr"></div>
+      <div><label for="hex">hex</label><input id="hex" inputmode="text" autocomplete="off" value="FF"></div>
+      <div><label for="bin">binary</label><input id="bin" inputmode="numeric" autocomplete="off" value="11111111"></div>
+      <div><label for="oct">octal</label><input id="oct" inputmode="numeric" autocomplete="off" value="377"></div>
+    </div>
+    <p class="err" id="baseErr" role="status" aria-live="polite"></p>
+    <div class="row" style="margin-top:6px">
+      <div><label for="anyBase">any base 2–36</label><input id="anyBase" type="number" min="2" max="36" step="1" value="36"></div>
+      <div><label for="anyVal">that base</label><input id="anyVal" autocomplete="off" value="73"></div>
+      <div style="flex:0 0 auto"><button class="ghost" id="copyBtn" type="button">Copy hex</button></div>
+    </div>
+    <p class="out mut" id="anyNote"></p>
+    <h2 style="margin-top:16px">The working</h2>
+    <ol class="steps" id="steps"></ol>
+  </section>
+
+  <section class="card" aria-labelledby="h-units">
+    <h2 id="h-units">Units</h2>
+    <div class="row">
+      <div><label for="uVal">value</label><input id="uVal" type="text" inputmode="decimal" value="1"></div>
+      <div><label for="uFrom">from</label><select id="uFrom"></select></div>
+      <div><label for="uTo">to</label><select id="uTo"></select></div>
+    </div>
+    <p class="out big" id="uOut">—</p>
+    <p class="out mut" id="uWork"></p>
+  </section>
+
+  <section class="card" aria-labelledby="h-time">
+    <h2 id="h-time">Timezones</h2>
+    <div class="row">
+      <div><label for="tClock">time</label><input id="tClock" autocomplete="off" value="09:00"></div>
+      <div><label for="tFrom">from</label><select id="tFrom"></select></div>
+      <div><label for="tTo">to</label><select id="tTo"></select></div>
+    </div>
+    <p class="out big" id="tOut">—</p>
+    <p class="out mut" id="tWork"></p>
+  </section>
+
+  <section class="card">
+    <h2>Take it with you</h2>
+    <div class="row">
+      <div style="flex:0 0 auto"><button id="saveBtn" type="button">Save this conversion</button></div>
+      <div style="flex:0 0 auto"><button class="ghost" id="csvBtn" type="button">Export the log (CSV)</button></div>
+      <div style="flex:0 0 auto"><button class="ghost" id="clearBtn" type="button">Clear the log</button></div>
+    </div>
+    <p class="mut" id="logNote">Nothing saved yet — everything stays on this device.</p>
+  </section>
+
+  <section class="card" id="help">
+    <h2>Keys</h2>
+    <p class="mut" style="margin:0"><kbd>/</kbd> jump to a field · <kbd>?</kbd> this panel · <kbd>Esc</kbd> close · <kbd>Ctrl</kbd>+<kbd>S</kbd> save the conversion</p>
+  </section>
+</main>
+
+<footer>Offline. No accounts, no telemetry. © 2026 Dr Sohil Momin · MIT.</footer>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="web-kit.js"></script>
+<script src="export-kit.js"></script>
+<script src="basebench.js"></script>
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var B = window.BaseBench;
+
+  function toast(msg) {
+    var t = $("toast");
+    t.textContent = msg; t.className = "toast on";
+    clearTimeout(toast._t); toast._t = setTimeout(function () { t.className = "toast"; }, 1600);
+  }
+
+  /* ---------- number bases: one state, four fields ---------- */
+  var fields = ["dec", "hex", "bin", "oct"];
+
+  function renderBases(sourceId) {
+    var v = B.sync(sourceId, $(sourceId).value);
+    var err = $("baseErr"), steps = $("steps");
+    if (!v.ok) {
+      err.textContent = v.error;
+      steps.innerHTML = "";
+      return;
+    }
+    err.textContent = "";
+    fields.forEach(function (f) {
+      var base = B.FIELDS[f];
+      if (f !== sourceId) $(f).value = v.text[base];
+    });
+    // the working, in the base of the field you typed into
+    var lines = B.steps(v.value, B.FIELDS[sourceId]);
+    steps.innerHTML = "";
+    lines.forEach(function (line) {
+      var li = document.createElement("li");
+      li.textContent = line;
+      steps.appendChild(li);
+    });
+    renderAny(v.value);
+    last = v.value;
+  }
+
+  var last = 255;
+
+  function renderAny(value) {
+    var b = parseInt($("anyBase").value, 10) || 36;
+    var shown = B.toBase(value, b);
+    $("anyVal").value = shown == null ? "" : shown;
+    $("anyNote").textContent = "base " + b + " digits: " + B.DIGITS.slice(0, b).split("").join(" ");
+  }
+
+  fields.forEach(function (f) {
+    $(f).addEventListener("input", function () { renderBases(f); });
+  });
+  $("anyBase").addEventListener("input", function () { renderAny(last); });
+  $("anyVal").addEventListener("input", function () {
+    var b = parseInt($("anyBase").value, 10) || 36;
+    var p = B.parse($("anyVal").value, b);
+    if (p.ok) { $("dec").value = B.toBase(p.value, 10); renderBases("dec"); }
+  });
+  $("copyBtn").addEventListener("click", function () {
+    var text = $("hex").value;
+    if (navigator.clipboard) navigator.clipboard.writeText(text).then(function () { toast("Copied " + text); }, function () { toast("Copy blocked by the browser"); });
+    else toast("Copy is not available here");
+  });
+
+  /* ---------- units ---------- */
+  var unitList = [];
+  Object.keys(B.UNITS).forEach(function (cat) {
+    Object.keys(B.UNITS[cat].u).forEach(function (u) { unitList.push(u); });
+  });
+  unitList = unitList.concat(["C", "F", "K"]);
+
+  function fill(sel, list, chosen) {
+    sel.innerHTML = "";
+    list.forEach(function (u) {
+      var o = document.createElement("option");
+      o.value = u; o.textContent = u;
+      if (u === chosen) o.selected = true;
+      sel.appendChild(o);
+    });
+  }
+  fill($("uFrom"), unitList, "km");
+  fill($("uTo"), unitList, "m");
+
+  function renderUnits() {
+    var value = Number(String($("uVal").value).trim());
+    var r = B.convert(value, $("uFrom").value, $("uTo").value);
+    if (!r.ok) { $("uOut").textContent = r.error; $("uWork").textContent = ""; return; }
+    $("uOut").textContent = B.round(r.value, 8) + " " + $("uTo").value;
+    $("uWork").textContent = r.working;
+    lastUnit = r.value;
+  }
+  var lastUnit = null;
+  ["uVal", "uFrom", "uTo"].forEach(function (id) { $(id).addEventListener("input", renderUnits); });
+  $("uFrom").addEventListener("change", renderUnits);
+  $("uTo").addEventListener("change", renderUnits);
+
+  /* ---------- timezones ---------- */
+  var zones = Object.keys(B.ZONES);
+  fill($("tFrom"), zones, "IST");
+  fill($("tTo"), zones, "UTC");
+
+  function renderTime() {
+    var r = B.shiftTime($("tClock").value, $("tFrom").value, $("tTo").value);
+    if (!r.ok) { $("tOut").textContent = r.error; $("tWork").textContent = ""; return; }
+    var day = r.day === 0 ? "" : r.day > 0 ? " (+1 day)" : " (−1 day)";
+    $("tOut").textContent = r.time + " " + $("tTo").value + day;
+    $("tWork").textContent = r.working;
+    lastTime = r.time;
+  }
+  var lastTime = null;
+  ["tClock", "tFrom", "tTo"].forEach(function (id) { $(id).addEventListener("input", renderTime); });
+  $("tFrom").addEventListener("change", renderTime);
+  $("tTo").addEventListener("change", renderTime);
+
+  /* ---------- the log (on the device) ---------- */
+  function log() { return (window.Loom && Loom.storage.get("basebench.log", [])) || []; }
+  function saveLog(rows) {
+    if (window.Loom) Loom.storage.set("basebench.log", rows);
+    $("logNote").textContent = rows.length ? rows.length + " saved on this device." : "Nothing saved yet — everything stays on this device.";
+  }
+
+  $("saveBtn").addEventListener("click", function () {
+    var rows = log();
+    rows.unshift({ at: new Date().toISOString(), dec: $("dec").value, hex: $("hex").value, bin: $("bin").value, oct: $("oct").value });
+    saveLog(rows.slice(0, 200));
+    toast("Saved");
+  });
+
+  $("csvBtn").addEventListener("click", function () {
+    var rows = log();
+    if (!rows.length) { toast("Nothing to export yet"); return; }
+    var csv = Export.df(rows).toCSV();
+    Export.text("basebench.csv", csv);
+  });
+
+  $("clearBtn").addEventListener("click", function () { saveLog([]); toast("Log cleared"); });
+
+  /* ---------- keys: never steal one from a field ---------- */
+  document.addEventListener("keydown", function (e) {
+    var typing = /^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement.tagName);
+    if (e.key === "/" && !typing) { e.preventDefault(); $("dec").focus(); $("dec").select(); }
+    else if (e.key === "?" && !typing) { e.preventDefault(); $("help").classList.toggle("on"); }
+    else if (e.key === "Escape") { $("help").classList.remove("on"); }
+    else if (e.key === "s" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); $("saveBtn").click(); }
+  });
+
+  /* ---------- boot ---------- */
+  renderBases("dec");
+  renderUnits();
+  renderTime();
+  saveLog(log());
+})();
+</script>
+</body>
+</html>
