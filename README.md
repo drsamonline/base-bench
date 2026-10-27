@@ -8,7 +8,7 @@
 
 [![live](https://img.shields.io/badge/live-online-22c55e)](https://drsamonline.github.io/base-bench/play/)
 [![test](https://github.com/drsamonline/base-bench/actions/workflows/test.yml/badge.svg)](https://github.com/drsamonline/base-bench/actions/workflows/test.yml)
-[![license](https://img.shields.io/badge/license-dual%20(personal%20free)-blue)](LICENSE)
+[![license](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-informational)](LICENSE)
 [![download](https://img.shields.io/github/v/release/drsamonline/base-bench
 
 **Every number base, unit and timezone on one page — with the working shown.**
@@ -62,7 +62,9 @@ assertions.
 
 ## Licence
 
-Dual — free for personal, hobby, educational and other non-commercial use;
-commercial use requires a paid licence. See `LICENSE` and `NOTICE.md`.
+PolyForm Noncommercial 1.0.0 — free for any noncommercial purpose. Commercial use
+needs a licence from the author. See [`LICENSE`](LICENSE).
 
-MIT for the engine file as noted in its header. © 2026 Dr Sohil Momin.
+Commercial use requires a paid licence from the author — see [`NOTICE.md`](NOTICE.md).
+The engine file noted in its own header stays **MIT**.
+
