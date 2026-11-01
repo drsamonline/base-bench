@@ -46,6 +46,17 @@
       if (d < 0 || d >= base) return { ok: false, error: "'" + intPart[i] + "' is not a digit in base " + base };
       value = value * base + d;
     }
+    /* Beyond 2^53 a double stops counting and starts rounding, so the bench
+     * would print a plausible number that is not the one you typed. A range
+     * check cannot catch it - the value has already rounded by the time the
+     * loop ends - so read it back: if the digits do not survive the round trip,
+     * the number was never exact and there is nothing honest to show. */
+    if (fracPart === "" && intPart !== "") {
+      var want = intPart.replace(/^0+(?=.)/, "").toUpperCase();
+      if (toBase(Math.abs(value), base) !== want) {
+        return { ok: false, error: "beyond 2^53 (9007199254740992) a double stops being exact, so this would be a rounded answer - the bench will not print it" };
+      }
+    }
     var scale = 1;
     for (i = 0; i < fracPart.length; i++) {
       d = digitValue(fracPart[i]);

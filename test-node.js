@@ -163,6 +163,15 @@ ok("the page has a viewport, so it works on a phone", html.indexOf('name="viewpo
 ok("the page makes no network request", !/https?:\/\//.test(html.replace(/https?:\/\/[^"'\s]*(w3\.org|schema\.org)[^"'\s]*/g, "")));
 
 /* ------------------------------------------------------------------ */
+section("exactness: the bench refuses rather than rounds");
+
+ok("2^53 itself is still read exactly", B.parse("9007199254740992", 10).value === 9007199254740992);
+eq("and written exactly in hex", B.toBase(9007199254740992, 16), "20000000000000");
+var tooBig = B.parse("9007199254740993", 10);
+ok("one past 2^53 is refused, not rounded to its neighbour",
+  !tooBig.ok && /2\^53/.test(tooBig.error), JSON.stringify(tooBig));
+
+/* ------------------------------------------------------------------ */
 section("the shell: offline, installable, and unable to fetch");
 
 var sw = fs.readFileSync(path.join(dir, "sw.js"), "utf8");

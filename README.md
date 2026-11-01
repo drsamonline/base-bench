@@ -2,7 +2,7 @@
 
 <p>
   <a href="https://drsamonline.github.io/base-bench/play/"><img alt="live: online" src="docs/assets/badge-live.svg" height="20"></a>
-  <a href="https://github.com/drsamonline/base-bench/actions/workflows/test.yml"><img alt="tests: 105 passing" src="docs/assets/badge-tests.svg" height="20"></a>
+  <a href="https://github.com/drsamonline/base-bench/actions/workflows/test.yml"><img alt="tests: 108 passing" src="docs/assets/badge-tests.svg" height="20"></a>
   <a href="https://github.com/drsamonline/base-bench/actions/workflows/build-apps.yml"><img alt="build: green" src="docs/assets/badge-build.svg" height="20"></a>
   <a href="LICENSE"><img alt="licence: PolyForm Noncommercial 1.0.0" src="docs/assets/badge-licence.svg" height="20"></a>
   <img alt="offline: no network" src="docs/assets/badge-offline.svg" height="20">
@@ -43,7 +43,7 @@ Master list **#142** · built from `QUEUE/app-base-bench.md`.
 ## What it refuses to do
 
 - **Not a scientific calculator.** It converts, and it shows how. Anything else is a different tool.
-- **No invented answers.** An illegal digit, an unknown unit, a length converted to a mass, or `0x` on base 10 each produce a sentence saying what is wrong — not a plausible-looking number.
+- **No invented answers.** An illegal digit, an unknown unit, a length converted to a mass, `0x` on base 10, or a number past 2^53 (where a double stops being exact and would round) each produce a sentence saying what is wrong — not a plausible-looking number.
 - **No network at any point.** No fetch, no CDN, no font service, no analytics. The page carries everything it needs, and the test suite asserts it.
 - **No account, no sync, no telemetry.** Nothing leaves the device unless you export it.
 
@@ -64,12 +64,12 @@ disagree.
 ```bash
 git clone https://github.com/drsamonline/base-bench
 open docs/play/index.html      # the whole app
-node test-node.js              # 105 assertions, no installs
+node test-node.js              # 108 assertions, no installs
 ```
 
 ## The proof
 
-`node test-node.js` — **105 assertions**, no dependencies. The engine is
+`node test-node.js` — **108 assertions**, no dependencies. The engine is
 `docs/play/basebench.js` and the page is a view over it, so testing the engine tests
 what the app does. Included are the spec's own done-means (255 shows as `FF` and
 `11111111` in the same view, and typing into any field updates the others), 4,004 round
@@ -106,7 +106,7 @@ release, but the two stamps are what make "am I on the new one?" answerable from
 
 The badges are drawn by `python3 tools/badges.py`, not fetched from a badge service:
 an offline-first app that needs the network to say "no network" has broken its own rule.
-If the suite stops printing 105, change the number in `tools/badges.py` in the same commit.
+If the suite stops printing 108, change the number in `tools/badges.py` in the same commit.
 
 ## Licence
 
