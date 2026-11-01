@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" role="img" aria-label="Android">
-  <g fill="none" stroke="#b5432c" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+  <g fill="none" stroke="#1e51c1" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
     <rect x="6" y="2.6" width="12" height="18.8" rx="2.6"/>
     <path d="M10.4 5.6h3.2"/>
-    <circle cx="12" cy="18.2" r=".9" fill="#b5432c" stroke="none"/>
+    <circle cx="12" cy="18.2" r=".9" fill="#1e51c1" stroke="none"/>
   </g>
 </svg>

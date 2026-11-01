@@ -10,19 +10,20 @@
 <meta property="og:image" content="assets/app-desktop.png">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <style>
-  /* Base Bench, the landing page. Warm paper and a vermilion rule - deliberately
-     not the app's dark navy monospace. The app lives inside a frame below. */
+  /* Base Bench, the landing page. The app's blue at page scale: cool paper,
+     navy ink, one blue rule. The app itself lives inside a frame below. */
   :root{
-    --paper:#f4eee1; --paper2:#fdfaf2; --ink:#191512; --muted:#6d6355; --line:#ded2bc;
-    --accent:#b5432c; --accent2:#1f5c58; --shade:#ece2ce;
+    /* the app's own blues: the landing page and the bench are one product */
+    --paper:#f5f8fe; --paper2:#ffffff; --ink:#0e1930; --muted:#3f66b8; --line:#e0e9fc;
+    --accent:#1e51c1; --accent2:#0b3ea8; --shade:#eaf1fd;
     --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
     --sans:ui-sans-serif,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
     --shadow:0 1px 0 rgba(25,21,18,.05),0 18px 40px -28px rgba(25,21,18,.55);
   }
   html[data-theme="dark"]{
-    --paper:#14110d; --paper2:#1b1712; --ink:#f4eee1; --muted:#a2957f; --line:#332b21;
-    --accent:#e2694a; --accent2:#5fb3aa; --shade:#0f0d0a;
+    --paper:#070d1a; --paper2:#09132a; --ink:#f0f4fe; --muted:#7f9ad4; --line:#12224a;
+    --accent:#628ff1; --accent2:#9dbaf7; --shade:#050a15;
     --shadow:0 1px 0 rgba(0,0,0,.4),0 18px 40px -28px rgba(0,0,0,.9);
   }
   *{box-sizing:border-box}
@@ -31,7 +32,7 @@
        -webkit-font-smoothing:antialiased;transition:background .2s,color .2s}
   a{color:inherit}
   .wrap{max-width:68rem;margin:0 auto;padding:0 1.5rem}
-  .band{height:7px;background:linear-gradient(90deg,var(--accent) 0%,var(--accent) 34%,var(--accent2) 34%,var(--accent2) 68%,var(--line) 68%)}
+  .band{height:7px;background:linear-gradient(90deg,var(--accent) 0%,var(--accent) 30%,var(--accent2) 30%,var(--accent2) 62%,var(--line) 62%)}
   h1,h2,h3{font-family:var(--serif);font-weight:600;letter-spacing:-.02em;margin:0}
   h1{font-size:clamp(2.3rem,4.6vw,3.35rem);line-height:1.06}
   h1 em{display:block;font-style:italic;font-weight:400;color:var(--accent);font-size:.9em;margin-top:.1em}
@@ -395,7 +396,8 @@ node test-node.js              # 91 assertions, no installs</pre>
     bases: function (d) {
       var dec = d.getElementById("dec");
       dec.value = "255"; dec.dispatchEvent(new Event("input", { bubbles: true }));
-      return d.getElementById("h-bases");
+      if (d.defaultView) d.defaultView.scrollTo(0, 0);   // the first case reads from the app's own header
+      return null;
     },
     units: function (d) {
       var v = d.getElementById("uVal"), f = d.getElementById("uFrom"), t = d.getElementById("uTo");

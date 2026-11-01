@@ -16,21 +16,21 @@ import os
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "docs", "assets")
 
-# Base Bench's own palette - the app's ink and its vermilion, not the estate default.
-INK = "#191512"
-CREAM = "#f4eee1"
-VERMILION = "#b5432c"
-TEAL = "#1f5c58"
+# The app's palette - navy ink, the blue accent, green only for a passing state.
+INK = "#0e1930"
+CREAM = "#eef3fe"
+BLUE = "#1e51c1"
+DEEP = "#0b3ea8"
 GREEN = "#2f6b46"
 
 BADGES = [
-    ("live", "live", "online", TEAL),
+    ("live", "live", "online", DEEP),
     ("tests", "tests", "91 passing", GREEN),
     ("build", "build", "green", GREEN),
-    ("licence", "licence", "PolyForm NC 1.0.0", VERMILION),
+    ("licence", "licence", "PolyForm NC 1.0.0", BLUE),
     ("offline", "offline", "no network", INK),
     ("deps", "deps", "0 runtime", INK),
-    ("bases", "bases", "2-36", VERMILION),
+    ("bases", "bases", "2-36", BLUE),
 ]
 
 CH = 6.6  # approximate advance width at 11px
