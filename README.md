@@ -2,7 +2,7 @@
 
 <p>
   <a href="https://drsamonline.github.io/base-bench/play/"><img alt="live: online" src="docs/assets/badge-live.svg" height="20"></a>
-  <a href="https://github.com/drsamonline/base-bench/actions/workflows/test.yml"><img alt="tests: 91 passing" src="docs/assets/badge-tests.svg" height="20"></a>
+  <a href="https://github.com/drsamonline/base-bench/actions/workflows/test.yml"><img alt="tests: 105 passing" src="docs/assets/badge-tests.svg" height="20"></a>
   <a href="https://github.com/drsamonline/base-bench/actions/workflows/build-apps.yml"><img alt="build: green" src="docs/assets/badge-build.svg" height="20"></a>
   <a href="LICENSE"><img alt="licence: PolyForm Noncommercial 1.0.0" src="docs/assets/badge-licence.svg" height="20"></a>
   <img alt="offline: no network" src="docs/assets/badge-offline.svg" height="20">
@@ -38,6 +38,7 @@ Master list **#142** · built from `QUEUE/app-base-bench.md`.
 | **Units, with the factor** | Length, mass, data and time carry their factor in the working line. Temperature is affine, so it gets its own formula rather than a factor. `KB` and `KiB` are kept apart, because they are different units. |
 | **Timezones, with the rollover** | Fixed offsets, stated as fixed. The day change is said out loud rather than swallowed: 01:00 IST is 19:30 UTC **the previous day**. |
 | **A log, on the device** | The conversions you keep live in this browser's storage and leave only when you export them as CSV. |
+| **Installs as an app** | A service worker keeps the shell on the device and serves the HTML *network-first*, so a new release can never hide behind a cache. Add to home screen from the browser menu — no store, no account. |
 
 ## What it refuses to do
 
@@ -63,12 +64,12 @@ disagree.
 ```bash
 git clone https://github.com/drsamonline/base-bench
 open docs/play/index.html      # the whole app
-node test-node.js              # 91 assertions, no installs
+node test-node.js              # 105 assertions, no installs
 ```
 
 ## The proof
 
-`node test-node.js` — **91 assertions**, no dependencies. The engine is
+`node test-node.js` — **105 assertions**, no dependencies. The engine is
 `docs/play/basebench.js` and the page is a view over it, so testing the engine tests
 what the app does. Included are the spec's own done-means (255 shows as `FF` and
 `11111111` in the same view, and typing into any field updates the others), 4,004 round
@@ -85,6 +86,9 @@ check disabled, the digits reversed) each fail between 1 and 9 assertions.
 docs/index.html              the landing page - its own design, not the app's
 docs/play/index.html         the app
 docs/play/basebench.js       the engine: bases, units, timezones
+docs/play/sw.js              the offline shell: network-first HTML, cache-first assets
+docs/play/manifest.webmanifest  what makes it installable, and its icons
+docs/play/icon-*.png         the launcher icons, drawn locally
 docs/play/web-kit.js         storage, theme, i18n, a11y
 docs/play/export-kit.js      the CSV export
 docs/assets/badge-*.svg      badges, drawn locally by tools/badges.py
@@ -94,9 +98,15 @@ test-node.js                 the proof
 tools/badges.py              regenerates the badges - no image service involved
 ```
 
+The page carries a `Content-Security-Policy` of `default-src 'none'` with
+`connect-src 'none'`, so "no network" is enforced by the browser rather than only asserted by
+the suite. Bump `CACHE` in `docs/play/sw.js` and the build stamp in the footers on every
+release — the worker serves HTML network-first precisely so that a stale cache cannot hide a
+release, but the two stamps are what make "am I on the new one?" answerable from the page.
+
 The badges are drawn by `python3 tools/badges.py`, not fetched from a badge service:
 an offline-first app that needs the network to say "no network" has broken its own rule.
-If the suite stops printing 91, change the number in `tools/badges.py` in the same commit.
+If the suite stops printing 105, change the number in `tools/badges.py` in the same commit.
 
 ## Licence
 

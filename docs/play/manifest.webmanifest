@@ -1,0 +1,44 @@
+{
+  "name": "Base Bench",
+  "short_name": "Base Bench",
+  "description": "Every number base, unit and timezone on one page, with the working shown. Offline, no accounts.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f5f8fe",
+  "theme_color": "#1e51c1",
+  "lang": "en",
+  "categories": [
+    "utilities",
+    "productivity",
+    "education"
+  ],
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

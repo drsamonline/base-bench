@@ -163,5 +163,61 @@ ok("the page has a viewport, so it works on a phone", html.indexOf('name="viewpo
 ok("the page makes no network request", !/https?:\/\//.test(html.replace(/https?:\/\/[^"'\s]*(w3\.org|schema\.org)[^"'\s]*/g, "")));
 
 /* ------------------------------------------------------------------ */
+section("the shell: offline, installable, and unable to fetch");
+
+var sw = fs.readFileSync(path.join(dir, "sw.js"), "utf8");
+var manifest = JSON.parse(fs.readFileSync(path.join(dir, "manifest.webmanifest"), "utf8"));
+
+var listed = (sw.match(/"\.\/[^"]*"/g) || []).map(function (x) { return x.slice(1, -1); });
+var shipped = fs.readdirSync(dir).filter(function (f) { return f !== "sw.js"; });
+
+var unlisted = shipped.filter(function (f) { return listed.indexOf("./" + f) < 0; });
+ok("the worker lists every file the app ships", unlisted.length === 0, "missing: " + unlisted.join(", "));
+
+var missing = listed.filter(function (f) { return f !== "./" && shipped.indexOf(f.slice(2)) < 0; });
+ok("every file the worker lists exists", missing.length === 0, "missing: " + missing.join(", "));
+
+ok("the cache name carries a version stamp, so a release cannot be hidden",
+  /var CACHE = "base-bench-\d{4}\.\d{2}\.\d{2}"/.test(sw));
+
+var navBranch = sw.slice(sw.indexOf('req.mode === "navigate"'), sw.indexOf("/* Assets:"));
+ok("HTML is served network-first, the cache is only the fallback",
+  navBranch.indexOf("fetch(req)") >= 0 && navBranch.indexOf("caches.match") > navBranch.indexOf("fetch(req)"));
+
+ok("the worker never proxies another origin", sw.indexOf("url.origin !== self.location.origin") >= 0);
+
+eq("the manifest starts at the app, standalone",
+  [manifest.start_url, manifest.scope, manifest.display], ["./", "./", "standalone"]);
+
+var sizes = manifest.icons.map(function (i) { return i.sizes; });
+ok("the manifest offers a 192, a 512 and a maskable icon",
+  sizes.indexOf("192x192") >= 0 && sizes.indexOf("512x512") >= 0 &&
+  manifest.icons.some(function (i) { return i.purpose === "maskable"; }));
+
+var iconMissing = manifest.icons.filter(function (i) {
+  return !fs.existsSync(path.join(dir, i.src));
+}).map(function (i) { return i.src; });
+ok("every icon the manifest names is on disk", iconMissing.length === 0, "missing: " + iconMissing.join(", "));
+
+ok("the page links the manifest", html.indexOf('rel="manifest"') >= 0);
+ok("the page registers the offline shell", html.indexOf('navigator.serviceWorker.register("sw.js")') >= 0);
+
+ok("the page declares a policy that allows no network at all",
+  /Content-Security-Policy/.test(html) && /default-src 'none'/.test(html) && /connect-src 'none'/.test(html));
+
+var remote = ["index.html", "basebench.js", "web-kit.js", "export-kit.js", "sw.js"].filter(function (f) {
+  var body = fs.readFileSync(path.join(dir, f), "utf8");
+  return /https?:\/\//.test(body.replace(/https?:\/\/[^"'\s]*(w3\.org|schema\.org)[^"'\s]*/g, ""));
+});
+ok("no file in the app names a remote address", remote.length === 0, "in: " + remote.join(", "));
+
+var css = (html.match(/<style[\s\S]*?<\/style>/g) || []).join("\n");
+ok("no webfont and no url() for the styles to fetch",
+  !/@font-face/.test(css) && !/url\(/.test(css.replace(/url\(#/g, "")));
+
+ok("the footer prints a build stamp, so 'am I on the new one?' is answerable",
+  /build \d{4}\.\d{2}\.\d{2}/.test(html));
+
+/* ------------------------------------------------------------------ */
 console.log("\n" + passed + " passed, " + failed + " failed");
 process.exit(failed ? 1 : 0);

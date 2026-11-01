@@ -4,7 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="Every number base, unit and timezone conversion on one page, with the working shown.">
-<meta name="theme-color" content="#0f1115">
+<meta name="theme-color" content="#1e51c1">
+<!-- The promise, enforced by the browser rather than only asserted by a test:
+     nothing may be fetched, from anywhere, ever. The one exception is the app's
+     own files, plus the offline shell's worker. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; connect-src 'none'">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
 <title>Base Bench — every base, unit and timezone, with the working shown</title>
 <script>
   /* first paint: light unless the system or the saved choice says dark.
@@ -306,6 +313,18 @@
     label();
   })();
 
+  /* ---------- the offline shell ----------
+     Only over http(s): a worker cannot register from file://, and the app must
+     keep working there, which is one of the ways it is meant to be used. */
+  if ("serviceWorker" in navigator &&
+      (location.protocol === "https:" || /^(localhost|127\.0\.0\.1)$/.test(location.hostname))) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("sw.js").then(function (reg) {
+        reg.update();                       // fetch a new worker the moment a page opens
+      }).catch(function () {});             // a blocked worker is not a broken app
+    });
+  }
+
   /* ---------- boot ---------- */
   renderBases("dec");
   renderUnits();
@@ -330,6 +349,16 @@
   button:not(.ghost):not(.tab):not(.tbtn){background:var(--acc) !important;color:#fff !important}
   input,select,textarea,.toast,kbd{background:var(--card) !important;color:var(--ink) !important}
   button.ghost{color:var(--ink) !important;border-color:var(--line) !important}
+</style>
+<style id="app-print" media="print">
+  /* The whole point of the app is a working you can check. On paper that means
+     the steps and the fields, not the buttons that produced them. */
+  html,body{background:#fff !important;background-image:none !important;color:#000 !important}
+  header .tbtn,.toast,#help,.row button,footer .stamp{display:none !important}
+  .card{background:#fff !important;border:1px solid #999 !important;break-inside:avoid}
+  input,select{border:1px solid #999 !important;background:#fff !important;color:#000 !important}
+  .mut,.err,ol.steps li,#uWork,#tWork{color:#333 !important}
+  a{text-decoration:none;color:#000 !important}
 </style>
 </body>
 </html>
