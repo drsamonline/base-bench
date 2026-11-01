@@ -3,65 +3,437 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Base Bench — number bench</title>
-<meta name="description" content="Every number base, unit and timezone on one page — with the working shown.">
+<title>Base Bench — every base, unit and timezone, with the working shown</title>
+<meta name="description" content="A converter that shows its arithmetic: number bases 2–36, units and fixed-offset timezones on one page. Offline, no accounts, no network, no dependencies.">
+<meta property="og:title" content="Base Bench">
+<meta property="og:description" content="Every number base, unit and timezone on one page — with the working shown.">
+<meta property="og:image" content="assets/app-desktop.png">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
 <style>
-  :root{--bg:#f8fafc;--card:#ffffff;--ink:#0f172a;--dim:#5b6b82;
-        --line:#dde5ef;--acc:#2563eb;}
+  /* Base Bench, the landing page. Warm paper and a vermilion rule - deliberately
+     not the app's dark navy monospace. The app lives inside a frame below. */
+  :root{
+    --paper:#f4eee1; --paper2:#fdfaf2; --ink:#191512; --muted:#6d6355; --line:#ded2bc;
+    --accent:#b5432c; --accent2:#1f5c58; --shade:#ece2ce;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+    --sans:ui-sans-serif,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+    --shadow:0 1px 0 rgba(25,21,18,.05),0 18px 40px -28px rgba(25,21,18,.55);
+  }
+  html[data-theme="dark"]{
+    --paper:#14110d; --paper2:#1b1712; --ink:#f4eee1; --muted:#a2957f; --line:#332b21;
+    --accent:#e2694a; --accent2:#5fb3aa; --shade:#0f0d0a;
+    --shadow:0 1px 0 rgba(0,0,0,.4),0 18px 40px -28px rgba(0,0,0,.9);
+  }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);font-family:ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.65 var(--sans);
+       -webkit-font-smoothing:antialiased;transition:background .2s,color .2s}
   a{color:inherit}
-  .dl{display:flex;gap:9px;flex-wrap:wrap;margin:0}
-  .dl a{text-decoration:none;border:1px solid var(--line);border-radius:8px;
-        padding:10px 14px;font-size:13px;font-weight:600;background:var(--card);color:var(--ink)}
-  .dl a:hover{border-color:var(--acc);color:var(--acc)}
-  .dl small{display:block;font-weight:400;color:var(--dim);font-size:11px;margin-top:2px}
-  footer{margin-top:38px;padding-top:14px;border-top:1px solid var(--line);
-         color:var(--dim);font-size:12.5px}
-  footer a{color:var(--acc);text-decoration:none}
+  .wrap{max-width:68rem;margin:0 auto;padding:0 1.5rem}
+  .band{height:7px;background:linear-gradient(90deg,var(--accent) 0%,var(--accent) 34%,var(--accent2) 34%,var(--accent2) 68%,var(--line) 68%)}
+  h1,h2,h3{font-family:var(--serif);font-weight:600;letter-spacing:-.02em;margin:0}
+  h1{font-size:clamp(2.3rem,4.6vw,3.35rem);line-height:1.06}
+  h1 em{display:block;font-style:italic;font-weight:400;color:var(--accent);font-size:.9em;margin-top:.1em}
+  h2{font-size:clamp(1.55rem,3vw,2.15rem);line-height:1.15}
+  h3{font-size:1.12rem;letter-spacing:-.01em}
 
-  body{background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
-       background-size:28px 28px;background-position:-1px -1px}
-  .bench{max-width:780px;margin:0 auto;padding:40px 24px 70px;background:var(--bg)}
-  .crumb{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);text-decoration:none}
-  .hd{margin:22px 0 26px;padding-bottom:20px;border-bottom:2px solid var(--acc)}
-  h1{font-size:clamp(1.8rem,4.6vw,2.5rem);margin:0 0 10px;letter-spacing:-.02em;font-weight:700}
-  .tag{color:var(--dim);font-size:1rem;margin:0 0 18px;max-width:56ch;line-height:1.6}
-  .go{display:inline-block;background:var(--acc);color:#fff;text-decoration:none;
-      padding:11px 18px;border-radius:6px;font-weight:700;font-size:14px}
-  .t{width:100%;border-collapse:collapse;font-size:13.5px}
-  .t th{text-align:left;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
-        color:var(--dim);padding:8px 10px;border-bottom:1px solid var(--line)}
-  .t td{padding:12px 10px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.6}
-  .t td:first-child{color:var(--acc);font-weight:700;white-space:nowrap}
-  .t td:last-child{color:var(--dim)}
-  h2{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:32px 0 12px}
-  .note{color:var(--dim);font-size:13px;margin-top:18px}
+  /* ---------- top line ---------- */
+  .topline{display:flex;justify-content:space-between;align-items:center;gap:1rem;
+           padding:1.5rem 0 .4rem}
+  .crumb{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+         text-decoration:none}
+  .crumb:hover{color:var(--accent)}
+  .tbtn{display:inline-flex;align-items:center;gap:.45rem;font:600 .78rem/1 var(--sans);
+        letter-spacing:.06em;text-transform:uppercase;color:var(--muted);cursor:pointer;
+        background:transparent;border:1px solid var(--line);border-radius:999px;padding:.45rem .8rem}
+  .tbtn:hover{color:var(--accent);border-color:var(--accent)}
+  .tbtn svg{width:14px;height:14px;display:block}
+
+  /* ---------- hero ---------- */
+  .hero{padding-bottom:3.2rem}
+  .hgrid{display:grid;grid-template-columns:1.2fr .8fr;gap:2.6rem;align-items:start;
+         padding-top:1.4rem}
+  @media (max-width:860px){.hgrid{grid-template-columns:1fr;gap:1.8rem}}
+  .eyebrow{font-size:.76rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);
+           margin:0 0 1rem;display:flex;align-items:center;gap:.6rem}
+  .eyebrow::before{content:"";width:26px;height:2px;background:var(--accent)}
+  .lede{font-size:1.12rem;color:var(--muted);margin:1.1rem 0 0;max-width:34rem}
+  .cta{display:flex;flex-wrap:wrap;gap:.6rem;margin:1.6rem 0 1.2rem}
+  .btn{display:inline-flex;align-items:center;gap:.5rem;text-decoration:none;font:600 .95rem/1 var(--sans);
+       padding:.85rem 1.2rem;border-radius:.5rem;border:1px solid var(--line);background:var(--paper2);
+       transition:transform .12s,border-color .12s,color .12s}
+  .btn:hover{transform:translateY(-1px);border-color:var(--accent);color:var(--accent)}
+  .btn.primary{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .btn.primary:hover{color:var(--paper);border-color:var(--ink);opacity:.92}
+  .badges{display:flex;flex-wrap:wrap;gap:.32rem;margin:0 0 1.1rem}
+  .badges img{height:20px;display:block}
+  .meta{font-size:.86rem;color:var(--muted);margin:0}
+  .meta b{color:var(--ink);font-weight:600}
+
+  /* ---------- the ladder: the hero's own object ---------- */
+  .ladder{background:var(--paper2);border:1px solid var(--line);border-radius:.75rem;
+          padding:1.25rem 1.3rem;box-shadow:var(--shadow);position:relative}
+  .ladder .lbl{font:600 .7rem/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;
+               color:var(--muted);margin:0 0 .9rem}
+  .ladder ol{list-style:none;margin:0;padding:0;font-family:var(--mono);font-size:.86rem}
+  .ladder li{padding:.5rem 0;border-bottom:1px dashed var(--line);color:var(--ink);white-space:pre-wrap}
+  .ladder li:last-of-type{border-bottom:0}
+  .ladder .rem{color:var(--accent);font-weight:700}
+  .ladder .read{margin:.9rem 0 0;font-family:var(--mono);font-size:.86rem;color:var(--accent2);
+                font-weight:700;letter-spacing:.02em}
+  .ladder .foot{margin:.7rem 0 0;font-size:.8rem;color:var(--muted);font-family:var(--sans)}
+
+  /* ---------- demo band ---------- */
+  .demo{background:var(--shade);border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+        padding:3rem 0 3.4rem}
+  .demo .hd{display:flex;justify-content:space-between;align-items:baseline;gap:1.5rem;flex-wrap:wrap}
+  .demo .hd p{margin:.5rem 0 0;color:var(--muted);font-size:.95rem;max-width:34rem}
+  .guided{display:flex;flex-wrap:wrap;gap:.45rem;margin:1.2rem 0 1rem}
+  .gbtn{font:600 .82rem/1 var(--sans);padding:.55rem .8rem;border-radius:999px;cursor:pointer;
+        background:var(--paper2);color:var(--muted);border:1px solid var(--line)}
+  .gbtn:hover{color:var(--accent);border-color:var(--accent)}
+  .gbtn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+  .frame{position:relative;border:1px solid var(--line);border-radius:.8rem;overflow:hidden;
+         background:var(--paper2);box-shadow:var(--shadow)}
+  .bar{display:flex;align-items:center;gap:.55rem;padding:.55rem .8rem;border-bottom:1px solid var(--line);
+       background:var(--paper)}
+  .dots{display:flex;gap:.3rem}
+  .dots i{width:9px;height:9px;border-radius:50%;background:var(--line);display:block}
+  .url{font:500 .74rem/1 var(--mono);color:var(--muted);background:var(--paper2);border:1px solid var(--line);
+       border-radius:999px;padding:.32rem .7rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .poster{display:block;width:100%}
+  .frame iframe{display:block;width:100%;height:640px;border:0;background:var(--paper2)}
+  .frame.loaded .poster{display:none}
+  .frame:not(.loaded) iframe{position:absolute;left:-9999px;top:0;width:100%;height:640px}
+  @media (max-width:640px){.frame iframe,.frame:not(.loaded) iframe{height:560px}}
+
+  /* ---------- sections ---------- */
+  section{padding:3.6rem 0}
+  main section.wrap{padding:3.6rem 1.5rem}   /* .wrap would otherwise flatten the rhythm */
+  section + section{border-top:1px solid var(--line)}
+  .kicker{font-size:.74rem;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);
+          margin:0 0 .8rem;font-weight:600}
+  .cards{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(16rem,1fr));margin-top:1.8rem}
+  .card{background:var(--paper2);border:1px solid var(--line);border-radius:.7rem;padding:1.2rem 1.25rem}
+  .card .n{font:700 .74rem/1 var(--mono);color:var(--accent);letter-spacing:.1em}
+  .card h3{margin:.6rem 0 .45rem}
+  .card p{margin:0;color:var(--muted);font-size:.95rem}
+  .refuse{list-style:none;padding:0;margin:1.6rem 0 0;display:grid;gap:.85rem}
+  .refuse li{display:grid;grid-template-columns:1.6rem 1fr;gap:.75rem;align-items:start;
+             color:var(--muted);font-size:.98rem}
+  .refuse li b{color:var(--ink);font-weight:600}
+  .refuse .mk{font-family:var(--mono);color:var(--accent);font-weight:700}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(9rem,1fr));gap:1rem;margin-top:1.9rem}
+  .stat{border-top:2px solid var(--accent);padding-top:.7rem}
+  .stat b{display:block;font-family:var(--serif);font-size:1.85rem;letter-spacing:-.02em;line-height:1.1}
+  .stat span{font-size:.82rem;color:var(--muted);letter-spacing:.04em}
+
+  /* ---------- install, with icons ---------- */
+  .install{display:grid;gap:.7rem;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));margin-top:1.6rem}
+  .dl{display:flex;align-items:center;gap:.85rem;text-decoration:none;background:var(--paper2);
+      border:1px solid var(--line);border-radius:.65rem;padding:.9rem 1rem}
+  .dl:hover{border-color:var(--accent);transform:translateY(-1px)}
+  .dl svg{width:26px;height:26px;flex:0 0 auto;color:var(--accent)}
+  .dl .t{display:block;font-weight:600;font-size:.95rem;line-height:1.3}
+  .dl .s{display:block;font-size:.78rem;color:var(--muted);font-family:var(--mono)}
+  .rel{margin:1.1rem 0 0;font-size:.88rem;color:var(--muted)}
+  .rel a{color:var(--accent);text-decoration:none;border-bottom:1px solid currentColor}
+
+  pre{background:var(--paper2);border:1px solid var(--line);border-radius:.6rem;padding:1rem 1.1rem;
+      overflow:auto;font-family:var(--mono);font-size:.85rem;color:var(--ink);margin:1.4rem 0 0}
+  .fine{color:var(--muted);font-size:.9rem;max-width:42rem;margin:1rem 0 0}
+
+  footer{border-top:1px solid var(--line);padding:2.2rem 0 3.4rem;color:var(--muted);font-size:.86rem}
+  footer .row{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;align-items:baseline}
+  footer a{color:var(--accent);text-decoration:none}
+  .stamp{font-family:var(--mono);font-size:.76rem;letter-spacing:.03em;color:var(--muted)}
 </style>
 </head>
 <body>
+<div class="band"></div>
 
-<div class="bench">
-  <a class="crumb" href="https://drsamonline.github.io/">← all projects</a>
-  <div class="hd">
-    <h1>Base Bench</h1>
-    <p class="tag">Every number base, unit and timezone on one page — with the working shown.</p>
-    <div class="acts"><a class="go" href="play/">Open the bench →</a></div>
+<header class="wrap hero">
+  <div class="topline">
+    <a class="crumb" href="https://drsamonline.github.io/">← drsamonline</a>
+    <button class="tbtn" id="themeBtn" type="button" aria-pressed="false" aria-label="Switch to the dark palette">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="4"></circle>
+        <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"></path>
+      </svg>
+      <span id="themeTxt">Dark</span>
+    </button>
   </div>
-  <table class="t">
-    <thead><tr><th>what</th><th>why it matters</th></tr></thead>
-    <tbody>
-    <tr><td>The working, shown</td><td>Not just the answer - the conversion laid out.</td></tr><tr><td>Bases, units, timezones</td><td>One bench for all three, so you stop switching tools.</td></tr><tr><td>Offline</td><td>No accounts, no network, no telemetry.</td></tr>
-    </tbody>
-  </table>
-  <h2>Install</h2>
-  <div class="dl">
-      <a href="https://github.com/drsamonline/base-bench/releases/download/app-latest/base-bench.apk">Android<small>APK</small></a>
-      <a href="https://github.com/drsamonline/base-bench/releases/download/app-latest/base-bench-portable.exe">Windows<small>EXE</small></a>
-      <a href="https://github.com/drsamonline/base-bench/releases/download/app-latest/base-bench-linux">Linux<small>binary</small></a>
+
+  <div class="hgrid">
+    <div>
+      <p class="eyebrow">Offline tool · master list #142</p>
+      <h1>Every base,<br><em>and the working shown.</em></h1>
+      <p class="lede">A converter you cannot check is a converter you have to trust. Base Bench
+        converts number bases, units and timezones on one page — and prints the arithmetic
+        underneath, so the answer can be verified on paper.</p>
+      <div class="cta">
+        <a class="btn primary" href="play/">Open the bench →</a>
+        <a class="btn" href="https://github.com/drsamonline/base-bench">Read the source</a>
+      </div>
+      <div class="badges">
+        <a href="play/"><img src="assets/badge-live.svg" alt="live: online" height="20"></a>
+        <a href="https://github.com/drsamonline/base-bench/actions/workflows/test.yml"><img src="assets/badge-tests.svg" alt="tests: 91 passing" height="20"></a>
+        <a href="https://github.com/drsamonline/base-bench/actions/workflows/build-apps.yml"><img src="assets/badge-build.svg" alt="build: green" height="20"></a>
+        <a href="https://github.com/drsamonline/base-bench/blob/main/LICENSE"><img src="assets/badge-licence.svg" alt="licence: PolyForm Noncommercial 1.0.0" height="20"></a>
+        <img src="assets/badge-offline.svg" alt="offline: no network" height="20">
+        <img src="assets/badge-deps.svg" alt="deps: 0 runtime" height="20">
+        <img src="assets/badge-bases.svg" alt="bases: 2-36" height="20">
+      </div>
+      <p class="meta"><b>91</b> assertions · <b>0</b> runtime dependencies · runs from <b>file://</b> ·
+        no accounts, no telemetry, no build step.</p>
     </div>
-  <p class="note">Built for the case where you need to see how the number was derived.</p>
-  <footer><a href="https://github.com/drsamonline/base-bench">Source</a> · <a href="https://github.com/drsamonline/base-bench/blob/main/LICENSE">Licence</a> · Dr. Sohil Momin</footer>
+
+    <aside class="ladder" aria-label="The working for 255 in hexadecimal">
+      <p class="lbl">255 → hex, the way you would do it by hand</p>
+      <ol>
+        <li>255 / 16 = 15 <span class="rem">remainder 15 (F)</span></li>
+        <li>&nbsp;15 / 16 = &nbsp;0 <span class="rem">remainder 15 (F)</span></li>
+      </ol>
+      <p class="read">read the remainders bottom-up: FF</p>
+      <p class="foot">That is the whole engine. The same ladder is drawn for any base you type into.</p>
+    </aside>
+  </div>
+</header>
+
+<div class="demo">
+  <div class="wrap">
+    <div class="hd">
+      <div>
+        <p class="kicker">The bench, running</p>
+        <h2>Not a screenshot of the app — the app.</h2>
+        <p>Same files as the release. Press a button and the frame below moves to a case worth seeing.</p>
+      </div>
+    </div>
+    <div class="guided" role="group" aria-label="Jump the demo to a case">
+      <button class="gbtn" type="button" data-case="bases" aria-pressed="true">255 → hex, with the working</button>
+      <button class="gbtn" type="button" data-case="units" aria-pressed="false">KB is not KiB</button>
+      <button class="gbtn" type="button" data-case="time" aria-pressed="false">01:00 IST is the day before</button>
+      <button class="gbtn" type="button" data-case="bad" aria-pressed="false">An illegal digit is refused</button>
+    </div>
+    <div class="frame" id="frame">
+      <div class="bar">
+        <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="url">drsamonline.github.io/base-bench/play/</span>
+      </div>
+      <img class="poster" src="assets/app-desktop.png" alt="Base Bench showing 255 as FF, 11111111 and 377 in the same view, with the division steps listed underneath.">
+      <iframe id="app" src="play/" title="Base Bench, the live app"></iframe>
+    </div>
+  </div>
 </div>
+
+<main>
+  <section class="wrap">
+    <p class="kicker">What it does</p>
+    <h2>Three benches that share one idea: show the step.</h2>
+    <div class="cards">
+      <div class="card">
+        <p class="n">01</p>
+        <h3>Bases, linked</h3>
+        <p>Decimal, hex, binary and octal are four views of one number. Type into any of them and
+          the other three follow, with no reload. Any base from 2 to 36, and the legal digit strip
+          printed beside it.</p>
+      </div>
+      <div class="card">
+        <p class="n">02</p>
+        <h3>Units, with the factor</h3>
+        <p>Length, mass, data and time carry their factor in the working line. Temperature is
+          affine, so it gets its own formula instead of a factor. KB and KiB stay apart, because
+          they are different units.</p>
+      </div>
+      <div class="card">
+        <p class="n">03</p>
+        <h3>Timezones, with the rollover</h3>
+        <p>Fixed offsets, stated as fixed. The day change is said out loud rather than swallowed:
+          01:00 IST is 19:30 UTC <b>the previous day</b>.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap">
+    <p class="kicker">What it refuses to do</p>
+    <h2>It would rather say nothing than say something plausible.</h2>
+    <ul class="refuse">
+      <li><span class="mk">×</span><span><b>Not a scientific calculator.</b> It converts, and it shows how. Anything else is a different tool.</span></li>
+      <li><span class="mk">×</span><span><b>No invented answers.</b> An illegal digit, an unknown unit, a length converted to a mass, or <code>0x</code> on base 10 each produce a sentence saying what is wrong — not a number that looks right.</span></li>
+      <li><span class="mk">×</span><span><b>No network at any point.</b> No fetch, no CDN, no font service, no analytics. The page carries everything it needs.</span></li>
+      <li><span class="mk">×</span><span><b>No account, no sync.</b> The conversion log lives in this browser's storage and leaves only when you export it as CSV.</span></li>
+    </ul>
+  </section>
+
+  <section class="wrap">
+    <p class="kicker">The proof</p>
+    <h2>Numbers you can re-run.</h2>
+    <div class="stats">
+      <div class="stat"><b>91</b><span>assertions, no dependencies</span></div>
+      <div class="stat"><b>4,004</b><span>round trips across bases 2, 8, 16, 36</span></div>
+      <div class="stat"><b>2–36</b><span>any base, any digit strip</span></div>
+      <div class="stat"><b>0</b><span>runtime dependencies</span></div>
+    </div>
+    <p class="fine">The engine is <code>docs/play/basebench.js</code> and the page is a view over it,
+      so testing the engine tests what the app does. Each assertion was checked to bite: five
+      mutations of the engine — lowercase digits, the day rollover removed, the <code>- 32</code>
+      dropped from Fahrenheit, the prefix check disabled, the digits reversed — each fail between
+      one and nine assertions.</p>
+  </section>
+
+  <section class="wrap">
+    <p class="kicker">Take it with you</p>
+    <h2>The same app, three ways to carry it.</h2>
+    <div class="install">
+      <a class="dl" href="https://github.com/drsamonline/base-bench/releases/download/app-latest/base-bench.apk">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="6" y="2.5" width="12" height="19" rx="2.6"></rect>
+          <path d="M10.5 5.5h3"></path><circle cx="12" cy="18.3" r="1"></circle>
+        </svg>
+        <span><span class="t">Android</span><span class="s">base-bench.apk</span></span>
+      </a>
+      <a class="dl" href="https://github.com/drsamonline/base-bench/releases/download/app-latest/base-bench-portable.exe">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="2.5" y="4" width="19" height="14" rx="2"></rect>
+          <path d="M2.5 8h19M9 22h6"></path>
+        </svg>
+        <span><span class="t">Windows</span><span class="s">base-bench-portable.exe</span></span>
+      </a>
+      <a class="dl" href="https://github.com/drsamonline/base-bench/releases/download/app-latest/base-bench-linux">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="2.5" y="3.5" width="19" height="17" rx="2.4"></rect>
+          <path d="M7 9.5l2.5 2.5L7 14.5M12.5 15h4.5"></path>
+        </svg>
+        <span><span class="t">Linux</span><span class="s">base-bench-linux</span></span>
+      </a>
+    </div>
+    <p class="rel">Every build comes from the same commit as this page — see the
+      <a href="https://github.com/drsamonline/base-bench/releases">releases</a>, where each asset is
+      listed with its icon, size and what it runs on.</p>
+  </section>
+
+  <section class="wrap">
+    <p class="kicker">Run it</p>
+    <h2>Two files and a browser.</h2>
+    <pre>git clone https://github.com/drsamonline/base-bench
+open docs/play/index.html      # the whole app
+node test-node.js              # 91 assertions, no installs</pre>
+    <p class="fine">The kits the app uses — <code>web-kit.js</code> for storage and theme,
+      <code>export-kit.js</code> for the CSV — sit next to it in <code>docs/play/</code>, so the
+      bench works from a USB stick, from <code>file://</code> and from Pages with no server.</p>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap row">
+    <p style="margin:0"><strong style="color:var(--ink)">Base Bench</strong> — part of the
+      <a href="https://drsamonline.github.io/">drsamonline</a> estate. PolyForm Noncommercial 1.0.0.
+      Built by Dr Sohil Momin.</p>
+    <p class="stamp" style="margin:0">build 2026.11.01 · landing</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+  /* ---------- theme: light base, remembered override, its own key ----------
+     Deliberately not the app's key: setting one must not silently change the
+     other, or the embedded frame and the page around it drift apart. */
+  var KEY = "basebench.landing.theme";
+  var btn = document.getElementById("themeBtn");
+  var txt = document.getElementById("themeTxt");
+
+  function paint(mode) {
+    var dark = mode === "dark" || (mode === "system" &&
+      window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+    btn.setAttribute("aria-pressed", dark ? "true" : "false");
+    btn.setAttribute("aria-label", dark ? "Switch to the light palette" : "Switch to the dark palette");
+    txt.textContent = dark ? "Light" : "Dark";
+    syncFrame();
+  }
+  var stored = null;
+  try { stored = localStorage.getItem(KEY); } catch (e) {}
+  paint(stored || "system");
+  btn.addEventListener("click", function () {
+    var now = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+    try { localStorage.setItem(KEY, now); } catch (e) {}
+    paint(now);
+  });
+
+  /* The frame carries the page's palette, so a dark page never holds a light
+     app. The app's own stored choice is left alone - only the demo is matched. */
+  function syncFrame() {
+    try {
+      var d = app.contentDocument;
+      if (d && d.documentElement) {
+        d.documentElement.setAttribute("data-theme", document.documentElement.getAttribute("data-theme"));
+      }
+    } catch (e) {}
+  }
+
+  /* ---------- the demo: reveal the frame only once it has loaded ---------- */
+  var frame = document.getElementById("frame");
+  var app = document.getElementById("app");
+  /* The frame's first `load` is about:blank, so wait for the app's own DOM
+     before revealing it. Until then the poster is what the visitor sees. */
+  function appReady() {
+    var d = null;
+    try { d = app.contentDocument; } catch (e) { return false; }
+    return !!(d && d.getElementById && d.getElementById("dec"));
+  }
+  function reveal(tries) {
+    if (appReady()) { frame.classList.add("loaded"); syncFrame(); return; }
+    if (tries > 0) setTimeout(function () { reveal(tries - 1); }, 80);
+  }
+  app.addEventListener("load", function () { reveal(30); });
+  reveal(30);
+
+  /* ---------- guided buttons: drive the real app, same-origin ---------- */
+  var CASES = {
+    bases: function (d) {
+      var dec = d.getElementById("dec");
+      dec.value = "255"; dec.dispatchEvent(new Event("input", { bubbles: true }));
+      return d.getElementById("h-bases");
+    },
+    units: function (d) {
+      var v = d.getElementById("uVal"), f = d.getElementById("uFrom"), t = d.getElementById("uTo");
+      v.value = "1"; f.value = "KB"; t.value = "KiB";
+      f.dispatchEvent(new Event("change", { bubbles: true }));
+      t.dispatchEvent(new Event("change", { bubbles: true }));
+      v.dispatchEvent(new Event("input", { bubbles: true }));
+      return d.getElementById("h-units");
+    },
+    time: function (d) {
+      var c = d.getElementById("tClock"), f = d.getElementById("tFrom"), t = d.getElementById("tTo");
+      c.value = "01:00"; f.value = "IST"; t.value = "UTC";
+      f.dispatchEvent(new Event("change", { bubbles: true }));
+      t.dispatchEvent(new Event("change", { bubbles: true }));
+      c.dispatchEvent(new Event("input", { bubbles: true }));
+      return d.getElementById("h-time");
+    },
+    bad: function (d) {
+      var hex = d.getElementById("hex");
+      hex.value = "GG"; hex.dispatchEvent(new Event("input", { bubbles: true }));
+      return d.getElementById("baseErr");
+    }
+  };
+
+  var buttons = [].slice.call(document.querySelectorAll(".gbtn"));
+  function drive(name) {
+    buttons.forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.case === name ? "true" : "false"); });
+    var d = null;
+    try { d = app.contentDocument; } catch (e) { d = null; }
+    if (!d) return;
+    var target = CASES[name](d);
+    if (target && target.scrollIntoView) target.scrollIntoView({ block: "start" });
+  }
+  buttons.forEach(function (b) {
+    b.addEventListener("click", function () { drive(b.dataset.case); });
+  });
+  app.addEventListener("load", function () { drive("bases"); });
+})();
+</script>
 </body>
 </html>
