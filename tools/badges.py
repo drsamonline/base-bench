@@ -6,7 +6,7 @@ that needs the network to say "no network" has already broken its own rule.
 These are drawn here, committed to the repo, and referenced by relative path,
 so they render on Pages, in the README and from `file://` with no request.
 
-Keep the claims true. If the suite stops printing 108, change the number here
+Keep the claims true. If the suite stops printing 116, change the number here
 in the same commit.
 
   python3 tools/badges.py
@@ -25,7 +25,7 @@ GREEN = "#2f6b46"
 
 BADGES = [
     ("live", "live", "online", DEEP),
-    ("tests", "tests", "108 passing", GREEN),
+    ("tests", "tests", "116 passing", GREEN),
     ("build", "build", "green", GREEN),
     ("licence", "licence", "PolyForm NC 1.0.0", BLUE),
     ("offline", "offline", "no network", INK),

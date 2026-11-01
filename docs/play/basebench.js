@@ -16,72 +16,102 @@
   var DIGITS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   var STANDARD = [2, 8, 10, 16];
 
+  /* The words the working is built from. The engine keeps them in English and
+   * the page swaps the whole table for the chosen language, so the arithmetic
+   * stays where it belongs and only the prose moves. */
+  var WORDS = {
+    remainder: "remainder",
+    bottomUp: "read the remainders bottom-up: ",
+    zero: "0 is 0 in every base",
+    wholeFirst: "take the whole part first: ",
+    inBase: "in the base unit",
+    nextDay: "next day",
+    prevDay: "previous day",
+    notNumber: "not a number",
+    baseRange: "a base is a whole number from 2 to 36"
+  };
+  function setWords(w) {
+    if (!w) return WORDS;
+    for (var k in w) if (Object.prototype.hasOwnProperty.call(w, k) && w[k] != null) WORDS[k] = w[k];
+    return WORDS;
+  }
+
   function clean(text) { return String(text == null ? "" : text).replace(/[\s_]/g, ""); }
   function digitValue(ch) { return DIGITS.indexOf(String(ch).toUpperCase()); }
   function validBase(b) { return typeof b === "number" && b === Math.floor(b) && b >= 2 && b <= 36; }
 
+  /* Any length of integer, exactly. BigInt division has no ceiling, which is
+   * the whole reason the base bench uses it. */
+  function bigDigits(n, base) {
+    var B = BigInt(base), out = "";
+    if (n === BigInt(0)) return "0";
+    while (n > BigInt(0)) {
+      out = DIGITS[Number(n % B)] + out;
+      n = n / B;
+    }
+    return out;
+  }
+
   /* ---------- reading a number in any base ---------- */
   function parse(text, base) {
     base = base == null ? 10 : base;
-    if (!validBase(base)) return { ok: false, error: "a base is a whole number from 2 to 36" };
+    if (!validBase(base)) return { ok: false, code: "base_range", error: WORDS.baseRange };
     var s = clean(text);
-    if (!s) return { ok: false, error: "nothing to read" };
+    if (!s) return { ok: false, code: "nothing", error: "nothing to read" };
     var sign = 1;
     if (s[0] === "+" || s[0] === "-") { if (s[0] === "-") sign = -1; s = s.slice(1); }
     var head = s.slice(0, 2).toUpperCase();
     var prefix = head === "0X" ? 16 : head === "0B" ? 2 : head === "0O" ? 8 : 0;
     if (prefix) {
-      if (prefix !== base) return { ok: false, error: "the 0x/0b/0o prefix says base " + prefix + ", but you are reading base " + base };
+      if (prefix !== base) return { ok: false, code: "prefix_mismatch", params: { prefix: prefix, base: base }, error: "the 0x/0b/0o prefix says base " + prefix + ", but you are reading base " + base };
       s = s.slice(2);
     }
-    if (!s) return { ok: false, error: "no digits after the sign" };
+    if (!s) return { ok: false, code: "no_digits_after_sign", error: "no digits after the sign" };
     var dot = s.indexOf(".");
-    if (dot >= 0 && s.indexOf(".", dot + 1) >= 0) return { ok: false, error: "more than one point" };
+    if (dot >= 0 && s.indexOf(".", dot + 1) >= 0) return { ok: false, code: "two_points", error: "more than one point" };
     var intPart = dot < 0 ? s : s.slice(0, dot);
     var fracPart = dot < 0 ? "" : s.slice(dot + 1);
-    if (intPart === "" && fracPart === "") return { ok: false, error: "no digits" };
-    var value = 0, i, d;
+    if (intPart === "" && fracPart === "") return { ok: false, code: "no_digits", error: "no digits" };
+    /* The whole part is accumulated as a BigInt, so a number of any length is
+     * read exactly. A double would start rounding past 2^53 and print a
+     * plausible answer that is not the one you typed. */
+    var big = BigInt(0), i, d, B = BigInt(base);
     for (i = 0; i < intPart.length; i++) {
       d = digitValue(intPart[i]);
-      if (d < 0 || d >= base) return { ok: false, error: "'" + intPart[i] + "' is not a digit in base " + base };
-      value = value * base + d;
+      if (d < 0 || d >= base) return { ok: false, code: "bad_digit", params: { digit: intPart[i], base: base }, error: "'" + intPart[i] + "' is not a digit in base " + base };
+      big = big * B + BigInt(d);
     }
-    /* Beyond 2^53 a double stops counting and starts rounding, so the bench
-     * would print a plausible number that is not the one you typed. A range
-     * check cannot catch it - the value has already rounded by the time the
-     * loop ends - so read it back: if the digits do not survive the round trip,
-     * the number was never exact and there is nothing honest to show. */
-    if (fracPart === "" && intPart !== "") {
-      var want = intPart.replace(/^0+(?=.)/, "").toUpperCase();
-      if (toBase(Math.abs(value), base) !== want) {
-        return { ok: false, error: "beyond 2^53 (9007199254740992) a double stops being exact, so this would be a rounded answer - the bench will not print it" };
-      }
-    }
-    var scale = 1;
+    var frac = 0, scale = 1;
     for (i = 0; i < fracPart.length; i++) {
       d = digitValue(fracPart[i]);
-      if (d < 0 || d >= base) return { ok: false, error: "'" + fracPart[i] + "' is not a digit in base " + base };
+      if (d < 0 || d >= base) return { ok: false, code: "bad_digit", params: { digit: fracPart[i], base: base }, error: "'" + fracPart[i] + "' is not a digit in base " + base };
       scale *= base;
-      value += d / scale;
+      frac += d / scale;
     }
-    return { ok: true, value: sign * value, base: base };
+    /* `big` is the exact integer when there is no fraction; `value` stays a
+     * Number because the unit bench is a float bench and always was. */
+    var exact = frac === 0 ? (sign < 0 ? -big : big) : null;
+    return { ok: true, value: sign * (Number(big) + frac), big: exact, base: base };
   }
 
   /* ---------- writing a number in any base ---------- */
   function toBase(n, base, opts) {
     opts = opts || {};
     var maxFrac = opts.maxFrac == null ? 12 : opts.maxFrac;
-    if (typeof n !== "number" || !isFinite(n)) return null;
     if (!validBase(base)) return null;
-    var neg = n < 0, v = Math.abs(n);
-    var ip = Math.floor(v), fp = v - ip;
-    var intDigits = "";
-    while (ip > 0) {
-      var r = ip % base;
-      intDigits = DIGITS[r] + intDigits;
-      ip = Math.floor(ip / base);
+    var neg, ip, fp = 0;
+    if (typeof n === "bigint") {
+      neg = n < BigInt(0);
+      ip = neg ? -n : n;
+    } else if (typeof n === "number" && isFinite(n)) {
+      var v = Math.abs(n);
+      neg = n < 0;
+      ip = BigInt(Math.floor(v));
+      fp = v - Math.floor(v);
+    } else {
+      return null;
     }
-    if (intDigits === "") intDigits = "0";
+    var intDigits = bigDigits(ip, base);
     var out = intDigits;
     if (fp > 0) {
       var frac = "";
@@ -100,17 +130,20 @@
 
   /* ---------- the working, as a person would do it on paper ---------- */
   function steps(n, base) {
-    if (typeof n !== "number" || !isFinite(n)) return ["not a number"];
-    if (!validBase(base)) return ["a base is a whole number from 2 to 36"];
-    if (n !== Math.floor(n)) return ["take the whole part first: " + Math.floor(n) + " in base " + base + " is " + toBase(Math.floor(n), base)];
-    if (n === 0) return ["0 is 0 in every base"];
-    var neg = n < 0, v = Math.abs(n), out = [];
-    while (v > 0) {
-      var q = Math.floor(v / base), r = v - q * base;
-      out.push(v + " / " + base + " = " + q + " remainder " + r + " (" + DIGITS[r] + ")");
+    if (!validBase(base)) return [WORDS.baseRange];
+    var isBig = typeof n === "bigint";
+    if (!isBig && (typeof n !== "number" || !isFinite(n))) return [WORDS.notNumber];
+    if (!isBig && n !== Math.floor(n)) return [WORDS.wholeFirst + Math.floor(n) + " -> " + toBase(Math.floor(n), base)];
+    if ((isBig && n === BigInt(0)) || (!isBig && n === 0)) return [WORDS.zero];
+    var neg = isBig ? n < BigInt(0) : n < 0;
+    var v = isBig ? (neg ? -n : n) : BigInt(Math.abs(n));
+    var B = BigInt(base), out = [];
+    while (v > BigInt(0)) {
+      var q = v / B, r = Number(v - q * B);
+      out.push(v + " / " + base + " = " + q + " " + WORDS.remainder + " " + r + " (" + DIGITS[r] + ")");
       v = q;
     }
-    out.push("read the remainders bottom-up: " + (neg ? "-" : "") + toBase(n, base));
+    out.push(WORDS.bottomUp + (neg ? "-" : "") + toBase(n, base));
     return out;
   }
 
@@ -119,16 +152,17 @@
 
   function views(text, base) {
     var p = parse(text, base);
-    if (!p.ok) return { ok: false, error: p.error };
-    var out = { ok: true, value: p.value, text: {}, steps: steps(p.value, 10) };
-    STANDARD.forEach(function (b) { out.text[b] = toBase(p.value, b); });
-    out.text[36] = toBase(p.value, 36);
+    if (!p.ok) return { ok: false, code: p.code, params: p.params, error: p.error };
+    var exact = p.big == null ? p.value : p.big;   // the exact integer when there is one
+    var out = { ok: true, value: p.value, big: p.big, text: {}, steps: steps(exact, 10) };
+    STANDARD.forEach(function (b) { out.text[b] = toBase(exact, b); });
+    out.text[36] = toBase(exact, 36);
     return out;
   }
 
   function sync(field, text) {
     var base = FIELDS[field];
-    if (!base) return { ok: false, error: "unknown field '" + field + "'" };
+    if (!base) return { ok: false, code: "unknown_field", params: { field: field }, error: "unknown field '" + field + "'" };
     return views(text, base);
   }
 
@@ -152,11 +186,11 @@
   }
 
   function convert(value, from, to) {
-    if (typeof value !== "number" || !isFinite(value)) return { ok: false, error: "not a number" };
+    if (typeof value !== "number" || !isFinite(value)) return { ok: false, code: "not_a_number", error: WORDS.notNumber };
     var cat = categoryOf(from), catTo = categoryOf(to);
-    if (!cat) return { ok: false, error: "unknown unit '" + from + "'" };
-    if (!catTo) return { ok: false, error: "unknown unit '" + to + "'" };
-    if (cat !== catTo) return { ok: false, error: cat + " does not convert to " + catTo };
+    if (!cat) return { ok: false, code: "unknown_unit", params: { unit: from }, error: "unknown unit '" + from + "'" };
+    if (!catTo) return { ok: false, code: "unknown_unit", params: { unit: to }, error: "unknown unit '" + to + "'" };
+    if (cat !== catTo) return { ok: false, code: "wrong_category", params: { from: cat, to: catTo }, error: cat + " does not convert to " + catTo };
 
     if (cat === "temperature") {
       var c = from === "C" ? value : from === "F" ? (value - 32) * 5 / 9 : value - 273.15;
@@ -171,7 +205,7 @@
     var result = inBase / U[to];
     return {
       ok: true, value: result, category: cat,
-      working: value + " " + from + " x " + U[from] + " = " + round(inBase) + " (in the base unit) / " + U[to] + " = " + round(result) + " " + to
+      working: value + " " + from + " x " + U[from] + " = " + round(inBase) + " (" + WORDS.inBase + ") / " + U[to] + " = " + round(result) + " " + to
     };
   }
 
@@ -201,10 +235,10 @@
   }
 
   function shiftTime(clock, fromZone, toZone) {
-    if (ZONES[fromZone] == null) return { ok: false, error: "unknown zone '" + fromZone + "'" };
-    if (ZONES[toZone] == null) return { ok: false, error: "unknown zone '" + toZone + "'" };
+    if (ZONES[fromZone] == null) return { ok: false, code: "unknown_zone", params: { zone: fromZone }, error: "unknown zone '" + fromZone + "'" };
+    if (ZONES[toZone] == null) return { ok: false, code: "unknown_zone", params: { zone: toZone }, error: "unknown zone '" + toZone + "'" };
     var t = parseClock(clock);
-    if (!t) return { ok: false, error: "give the time as HH:MM" };
+    if (!t) return { ok: false, code: "bad_time", error: "give the time as HH:MM" };
     var utc = t.minutes - ZONES[fromZone];
     var there = utc + ZONES[toZone];
     var day = Math.floor(there / 1440);
@@ -214,12 +248,14 @@
       time: pad(Math.floor(local / 60)) + ":" + pad(local % 60),
       day: day,
       working: pad(t.h) + ":" + pad(t.m) + " " + fromZone + " (" + zoneLabel(fromZone) + ") - " + zoneLabel(fromZone) +
-        " = " + pad(Math.floor(((utc % 1440) + 1440) % 1440 / 60)) + ":" + pad(((utc % 1440) + 1440) % 1440 % 60) + " UTC, then + " + zoneLabel(toZone) + " = " + pad(Math.floor(local / 60)) + ":" + pad(local % 60) + " " + toZone + (day ? " (" + (day > 0 ? "next day" : "previous day") + ")" : "")
+        " = " + pad(Math.floor(((utc % 1440) + 1440) % 1440 / 60)) + ":" + pad(((utc % 1440) + 1440) % 1440 % 60) + " UTC, then + " + zoneLabel(toZone) + " = " + pad(Math.floor(local / 60)) + ":" + pad(local % 60) + " " + toZone + (day ? " (" + (day > 0 ? WORDS.nextDay : WORDS.prevDay) + ")" : "")
     };
   }
 
   return {
     VERSION: VERSION,
+    setWords: setWords,
+    words: function () { return WORDS; },
     DIGITS: DIGITS,
     STANDARD: STANDARD,
     FIELDS: FIELDS,

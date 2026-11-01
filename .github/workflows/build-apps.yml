@@ -36,11 +36,14 @@ concurrency:
 
 jobs:
   app:
-    uses: drsamonline/app-builder/.github/workflows/build.yml@246da5d54862d2571b0b37feb10499e467f20d7d   # was @main
+    # fbb5468 is the app-builder commit that adds the `release_notes` input; it is
+    # the previous pin plus that one change, so nothing else moves with it.
+    uses: drsamonline/app-builder/.github/workflows/build.yml@fbb5468c1140c9da7421e3fc5927c12efb4c01c1
     with:
       app_name: base-bench
       app_src: docs/play
       deploy_path: docs
+      release_notes: release-notes.md
     permissions:
       contents: write
       pages: write

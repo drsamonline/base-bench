@@ -163,13 +163,24 @@ ok("the page has a viewport, so it works on a phone", html.indexOf('name="viewpo
 ok("the page makes no network request", !/https?:\/\//.test(html.replace(/https?:\/\/[^"'\s]*(w3\.org|schema\.org)[^"'\s]*/g, "")));
 
 /* ------------------------------------------------------------------ */
-section("exactness: the bench refuses rather than rounds");
+section("exactness: any length of integer, and never a rounded one");
 
-ok("2^53 itself is still read exactly", B.parse("9007199254740992", 10).value === 9007199254740992);
-eq("and written exactly in hex", B.toBase(9007199254740992, 16), "20000000000000");
-var tooBig = B.parse("9007199254740993", 10);
-ok("one past 2^53 is refused, not rounded to its neighbour",
-  !tooBig.ok && /2\^53/.test(tooBig.error), JSON.stringify(tooBig));
+/* A double starts rounding at 2^53. The engine carries the whole part as a
+ * BigInt, so the digits that come out are the digits that went in. */
+function big(text, base) { return String(B.parse(text, base).big); }
+
+eq("2^53 itself is read exactly", big("9007199254740992", 10), "9007199254740992");
+eq("and one past it is read exactly too", big("9007199254740993", 10), "9007199254740993");
+eq("which is the hex a double would have got wrong",
+  B.toBase(B.parse("9007199254740993", 10).big, 16), "20000000000001");
+
+var long = "123456789012345678901234567890";
+eq("a 30-digit number survives base 36 and back",
+  big(B.toBase(B.parse(long, 10).big, 36), 36), long);
+
+eq("and its first division is exact, not rounded",
+  B.steps(B.parse(long, 10).big, 16)[0],
+  "123456789012345678901234567890 / 16 = 7716049313271604931327160493 remainder 2 (2)");
 
 /* ------------------------------------------------------------------ */
 section("the shell: offline, installable, and unable to fetch");
@@ -226,6 +237,42 @@ ok("no webfont and no url() for the styles to fetch",
 
 ok("the footer prints a build stamp, so 'am I on the new one?' is answerable",
   /build \d{4}\.\d{2}\.\d{2}/.test(html));
+
+/* ------------------------------------------------------------------ */
+section("the words: three languages, and none of them a half");
+
+var dictSrc = html.slice(html.indexOf("var DICT = {"), html.indexOf("var LANGS = ["));
+dictSrc = dictSrc.slice(0, dictSrc.lastIndexOf("};") + 2);
+var DICT = new Function("return " + dictSrc.slice("var DICT = ".length).replace(/;\s*$/, ""))();
+var LANGS = ["en", "hi", "gu"];
+
+var enKeys = Object.keys(DICT.en).sort();
+LANGS.forEach(function (l) {
+  var keys = Object.keys(DICT[l] || {}).sort();
+  var missing = enKeys.filter(function (k) { return keys.indexOf(k) < 0; });
+  ok(l + " carries every key English has (" + enKeys.length + ")", keys.join() === enKeys.join(),
+    "missing: " + missing.join(", "));
+});
+
+/* Every refusal the engine can produce is a code; a code with no sentence is a
+ * refusal that would fall back to English in a Hindi session. */
+var codes = (fs.readFileSync(path.join(dir, "basebench.js"), "utf8").match(/code: "[a-z_]+"/g) || [])
+  .map(function (c) { return c.slice(7, -1); });
+var unspoken = [];
+LANGS.forEach(function (l) {
+  codes.forEach(function (c) { if (!DICT[l]["err_" + c]) unspoken.push(l + ":" + c); });
+});
+ok("every refusal the engine can give is written in every language (" + codes.length + " codes)",
+  unspoken.length === 0, "unwritten: " + unspoken.join(", "));
+
+var tagged = (html.match(/data-i18n="[a-z_]+"/g) || []).map(function (a) { return a.slice(11, -1); });
+var untranslated = tagged.filter(function (k) { return !DICT.en[k]; });
+ok("every tagged phrase on the page is in the dictionary (" + tagged.length + " phrases)",
+  untranslated.length === 0, "missing: " + untranslated.join(", "));
+
+ok("the switch offers all three, and the page remembers which",
+  LANGS.every(function (l) { return html.indexOf('value="' + l + '"') >= 0; }) &&
+  html.indexOf('Loom.storage.get("lang"') >= 0 && html.indexOf('Loom.storage.set("lang"') >= 0);
 
 /* ------------------------------------------------------------------ */
 console.log("\n" + passed + " passed, " + failed + " failed");

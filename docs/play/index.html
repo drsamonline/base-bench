@@ -54,13 +54,19 @@
   footer{color:var(--mut);font-size:13px}
   .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;background:#1f2530;border:1px solid var(--line);border-radius:10px;padding:8px 14px;font-size:14px;opacity:0;transition:opacity .2s}
   .toast.on{opacity:1}
-  .hrow{display:flex;gap:14px;align-items:flex-start;justify-content:space-between}
+  .hrow{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+  .ctrls{display:flex;gap:8px;align-items:center;flex:0 0 auto;flex-wrap:wrap}
   .hrow > div{flex:1 1 auto;min-width:0}
   .tbtn{display:inline-flex;align-items:center;gap:6px;flex:0 0 auto;background:transparent;
         border:1px solid var(--line);color:var(--mut);border-radius:999px;padding:6px 11px;
         font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;width:auto;cursor:pointer}
   .tbtn:hover{color:var(--acc);border-color:var(--acc)}
   .tbtn svg{width:13px;height:13px;display:block}
+  .langwrap{flex:0 0 auto}
+  .langwrap .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  #langSel{width:auto;padding:6px 8px;font-size:12px;font-weight:600;letter-spacing:.02em;
+           background:transparent;border:1px solid var(--line);color:var(--mut);border-radius:999px;cursor:pointer}
+  #langSel:hover{color:var(--acc);border-color:var(--acc)}
   #help{display:none}
   #help.on{display:block}
 </style>
@@ -70,8 +76,9 @@
   <div class="hrow">
     <div>
       <h1>Base Bench</h1>
-      <p class="mut">Every number base, unit and timezone on one page — and the working, so you can check it.</p>
+      <p class="mut" data-i18n="ui_tag">Every number base, unit and timezone on one page — and the working, so you can check it.</p>
     </div>
+    <div class="ctrls">
     <button class="tbtn" id="themeBtn" type="button" aria-pressed="false" aria-label="Switch the palette">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
         <circle cx="12" cy="12" r="4"></circle>
@@ -79,68 +86,77 @@
       </svg>
       <span id="themeTxt">Dark</span>
     </button>
+    <label class="langwrap" for="langSel">
+      <span class="sr" data-i18n="ui_lang">Language</span>
+      <select id="langSel">
+        <option value="en">English</option>
+        <option value="hi">हिन्दी</option>
+        <option value="gu">ગુજરાતી</option>
+      </select>
+    </label>
+    </div>
   </div>
 </header>
 
 <main>
   <section class="card" aria-labelledby="h-bases">
-    <h2 id="h-bases">Number bases</h2>
+    <h2 id="h-bases" data-i18n="ui_bases">Number bases</h2>
     <div class="grid">
-      <div><label for="dec">decimal</label><input id="dec" inputmode="numeric" autocomplete="off" value="255" aria-describedby="baseErr"></div>
-      <div><label for="hex">hex</label><input id="hex" inputmode="text" autocomplete="off" value="FF"></div>
-      <div><label for="bin">binary</label><input id="bin" inputmode="numeric" autocomplete="off" value="11111111"></div>
-      <div><label for="oct">octal</label><input id="oct" inputmode="numeric" autocomplete="off" value="377"></div>
+      <div><label for="dec" data-i18n="ui_dec">decimal</label><input id="dec" inputmode="numeric" autocomplete="off" value="255" aria-describedby="baseErr"></div>
+      <div><label for="hex" data-i18n="ui_hex">hex</label><input id="hex" inputmode="text" autocomplete="off" value="FF"></div>
+      <div><label for="bin" data-i18n="ui_bin">binary</label><input id="bin" inputmode="numeric" autocomplete="off" value="11111111"></div>
+      <div><label for="oct" data-i18n="ui_oct">octal</label><input id="oct" inputmode="numeric" autocomplete="off" value="377"></div>
     </div>
     <p class="err" id="baseErr" role="status" aria-live="polite"></p>
     <div class="row" style="margin-top:6px">
-      <div><label for="anyBase">any base 2–36</label><input id="anyBase" type="number" min="2" max="36" step="1" value="36"></div>
-      <div><label for="anyVal">that base</label><input id="anyVal" autocomplete="off" value="73"></div>
-      <div style="flex:0 0 auto"><button class="ghost" id="copyBtn" type="button">Copy hex</button></div>
+      <div><label for="anyBase" data-i18n="ui_anybase">any base 2–36</label><input id="anyBase" type="number" min="2" max="36" step="1" value="36"></div>
+      <div><label for="anyVal" data-i18n="ui_thatbase">that base</label><input id="anyVal" autocomplete="off" value="73"></div>
+      <div style="flex:0 0 auto"><button class="ghost" id="copyBtn" type="button" data-i18n="ui_copy">Copy hex</button></div>
     </div>
     <p class="out mut" id="anyNote"></p>
-    <h2 style="margin-top:16px">The working</h2>
+    <h2 style="margin-top:16px" data-i18n="ui_working">The working</h2>
     <ol class="steps" id="steps"></ol>
   </section>
 
   <section class="card" aria-labelledby="h-units">
-    <h2 id="h-units">Units</h2>
+    <h2 id="h-units" data-i18n="ui_units">Units</h2>
     <div class="row">
-      <div><label for="uVal">value</label><input id="uVal" type="text" inputmode="decimal" value="1"></div>
-      <div><label for="uFrom">from</label><select id="uFrom"></select></div>
-      <div><label for="uTo">to</label><select id="uTo"></select></div>
+      <div><label for="uVal" data-i18n="ui_value">value</label><input id="uVal" type="text" inputmode="decimal" value="1"></div>
+      <div><label for="uFrom" data-i18n="ui_from">from</label><select id="uFrom"></select></div>
+      <div><label for="uTo" data-i18n="ui_to">to</label><select id="uTo"></select></div>
     </div>
     <p class="out big" id="uOut">—</p>
     <p class="out mut" id="uWork"></p>
   </section>
 
   <section class="card" aria-labelledby="h-time">
-    <h2 id="h-time">Timezones</h2>
+    <h2 id="h-time" data-i18n="ui_time">Timezones</h2>
     <div class="row">
-      <div><label for="tClock">time</label><input id="tClock" autocomplete="off" value="09:00"></div>
-      <div><label for="tFrom">from</label><select id="tFrom"></select></div>
-      <div><label for="tTo">to</label><select id="tTo"></select></div>
+      <div><label for="tClock" data-i18n="ui_clock">time</label><input id="tClock" autocomplete="off" value="09:00"></div>
+      <div><label for="tFrom" data-i18n="ui_from">from</label><select id="tFrom"></select></div>
+      <div><label for="tTo" data-i18n="ui_to">to</label><select id="tTo"></select></div>
     </div>
     <p class="out big" id="tOut">—</p>
     <p class="out mut" id="tWork"></p>
   </section>
 
   <section class="card">
-    <h2>Take it with you</h2>
+    <h2 data-i18n="ui_take">Take it with you</h2>
     <div class="row">
-      <div style="flex:0 0 auto"><button id="saveBtn" type="button">Save this conversion</button></div>
-      <div style="flex:0 0 auto"><button class="ghost" id="csvBtn" type="button">Export the log (CSV)</button></div>
-      <div style="flex:0 0 auto"><button class="ghost" id="clearBtn" type="button">Clear the log</button></div>
+      <div style="flex:0 0 auto"><button id="saveBtn" type="button" data-i18n="ui_save">Save this conversion</button></div>
+      <div style="flex:0 0 auto"><button class="ghost" id="csvBtn" type="button" data-i18n="ui_csv">Export the log (CSV)</button></div>
+      <div style="flex:0 0 auto"><button class="ghost" id="clearBtn" type="button" data-i18n="ui_clear">Clear the log</button></div>
     </div>
     <p class="mut" id="logNote">Nothing saved yet — everything stays on this device.</p>
   </section>
 
   <section class="card" id="help">
-    <h2>Keys</h2>
-    <p class="mut" style="margin:0"><kbd>/</kbd> jump to a field · <kbd>?</kbd> this panel · <kbd>Esc</kbd> close · <kbd>Ctrl</kbd>+<kbd>S</kbd> save the conversion</p>
+    <h2 data-i18n="ui_keys">Keys</h2>
+    <p class="mut" style="margin:0"><kbd>/</kbd> <span data-i18n="ui_keys_jump">jump to a field</span> · <kbd>?</kbd> <span data-i18n="ui_keys_panel">this panel</span> · <kbd>Esc</kbd> <span data-i18n="ui_keys_close">close</span> · <kbd>Ctrl</kbd>+<kbd>S</kbd> <span data-i18n="ui_keys_save">save the conversion</span></p>
   </section>
 </main>
 
-<footer>Offline. No accounts, no telemetry. © 2026 Dr Sohil Momin · PolyForm Noncommercial 1.0.0.
+<footer><span data-i18n="ui_footer">Offline. No accounts, no telemetry.</span> © 2026 Dr Sohil Momin · PolyForm Noncommercial 1.0.0.
   <span class="stamp" style="display:block;margin-top:6px;opacity:.75">build 2026.11.01 · app</span></footer>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
@@ -152,6 +168,238 @@
   "use strict";
   var $ = function (id) { return document.getElementById(id); };
   var B = window.BaseBench;
+
+  /* ---------- the words ----------
+     English, Hindi and Gujarati. The engine's own sentences are keyed by a code
+     (`code` + `params`), so a refusal is said in the reader's language while the
+     arithmetic stays arithmetic. */
+  var DICT = {
+    en: {
+      "ui_tag": "Every number base, unit and timezone on one page — and the working, so you can check it.",
+      "ui_bases": "Number bases",
+      "ui_dec": "decimal",
+      "ui_hex": "hex",
+      "ui_bin": "binary",
+      "ui_oct": "octal",
+      "ui_anybase": "any base 2–36",
+      "ui_thatbase": "that base",
+      "ui_working": "The working",
+      "ui_units": "Units",
+      "ui_value": "value",
+      "ui_from": "from",
+      "ui_to": "to",
+      "ui_time": "Timezones",
+      "ui_clock": "time",
+      "ui_take": "Take it with you",
+      "ui_save": "Save this conversion",
+      "ui_csv": "Export the log (CSV)",
+      "ui_clear": "Clear the log",
+      "ui_copy": "Copy hex",
+      "ui_keys": "Keys",
+      "ui_keys_jump": "jump to a field",
+      "ui_keys_panel": "this panel",
+      "ui_keys_close": "close",
+      "ui_keys_save": "save the conversion",
+      "ui_footer": "Offline. No accounts, no telemetry.",
+      "ui_lang": "Language",
+      "ui_dark": "Dark",
+      "ui_light": "Light",
+      "ui_theme_to_dark": "Switch to the dark palette",
+      "ui_theme_to_light": "Switch to the light palette",
+      "to_copied": "Copied {x}",
+      "to_copyblocked": "Copy blocked by the browser",
+      "to_copyunavailable": "Copy is not available here",
+      "to_saved": "Saved",
+      "to_nothing": "Nothing to export yet",
+      "to_cleared": "Log cleared",
+      "log_empty": "Nothing saved yet — everything stays on this device.",
+      "log_count": "{n} saved on this device.",
+      "any_note": "base {n} digits: {d}",
+      "w_remainder": "remainder",
+      "w_bottomUp": "read the remainders bottom-up: ",
+      "w_zero": "0 is 0 in every base",
+      "w_wholeFirst": "take the whole part first: ",
+      "w_inBase": "in the base unit",
+      "w_nextDay": "next day",
+      "w_prevDay": "previous day",
+      "w_notNumber": "not a number",
+      "err_base_range": "a base is a whole number from 2 to 36",
+      "err_nothing": "nothing to read",
+      "err_prefix_mismatch": "the 0x/0b/0o prefix says base {prefix}, but you are reading base {base}",
+      "err_no_digits_after_sign": "no digits after the sign",
+      "err_two_points": "more than one point",
+      "err_no_digits": "no digits",
+      "err_bad_digit": "'{digit}' is not a digit in base {base}",
+      "err_not_a_number": "not a number",
+      "err_unknown_unit": "unknown unit '{unit}'",
+      "err_wrong_category": "{from} does not convert to {to}",
+      "err_unknown_zone": "unknown zone '{zone}'",
+      "err_bad_time": "give the time as HH:MM",
+      "err_unknown_field": "unknown field '{field}'"
+    },
+    hi: {
+      "ui_tag": "एक ही पेज पर हर नंबर बेस, यूनिट और टाइमज़ोन — और इसका काम करने का तरीका भी, ताकि आप इसे चेक कर सकें।",
+      "ui_bases": "नंबर बेस",
+      "ui_dec": "डेसिमल",
+      "ui_hex": "हेक्स",
+      "ui_bin": "बाइनरी",
+      "ui_oct": "ऑक्टल",
+      "ui_anybase": "कोई भी बेस 2–36",
+      "ui_thatbase": "वह बेस",
+      "ui_working": "काम करने का तरीका",
+      "ui_units": "यूनिट्स",
+      "ui_value": "वैल्यू",
+      "ui_from": "से",
+      "ui_to": "तक",
+      "ui_time": "टाइमज़ोन",
+      "ui_clock": "समय",
+      "ui_take": "इसे अपने साथ ले जाएं",
+      "ui_save": "इस कन्वर्ज़न को सेव करें",
+      "ui_csv": "लॉग को एक्सपोर्ट करें (CSV)",
+      "ui_clear": "लॉग क्लियर करें",
+      "ui_copy": "हेक्स कॉपी करें",
+      "ui_keys": "कीज़",
+      "ui_keys_jump": "किसी फील्ड पर जंप करें",
+      "ui_keys_panel": "यह पैनल",
+      "ui_keys_close": "बंद करें",
+      "ui_keys_save": "कन्वर्ज़न सेव करें",
+      "ui_footer": "ऑफ़लाइन। कोई अकाउंट नहीं, कोई टेलीमेट्री नहीं।",
+      "ui_lang": "भाषा",
+      "ui_dark": "डार्क",
+      "ui_light": "लाइट",
+      "ui_theme_to_dark": "डार्क पैलेट पर स्विच करें",
+      "ui_theme_to_light": "लाइट पैलेट पर स्विच करें",
+      "to_copied": "{x} कॉपी हो गया",
+      "to_copyblocked": "ब्राउज़र ने कॉपी करने से रोका है",
+      "to_copyunavailable": "यहाँ कॉपी करने का विकल्प नहीं है",
+      "to_saved": "सेव हो गया",
+      "to_nothing": "अभी एक्सपोर्ट करने के लिए कुछ नहीं है",
+      "to_cleared": "लॉग क्लियर हो गया",
+      "log_empty": "अभी तक कुछ सेव नहीं हुआ — सब कुछ इसी डिवाइस पर रहता है।",
+      "log_count": "इस डिवाइस पर {n} सेव हैं।",
+      "any_note": "बेस {n} डिजिट्स: {d}",
+      "w_remainder": "शेषफल",
+      "w_bottomUp": "शेषफलों को नीचे से ऊपर पढ़ें: ",
+      "w_zero": "0 हर बेस में 0 होता है",
+      "w_wholeFirst": "पहले पूरा हिस्सा लें: ",
+      "w_inBase": "बेस यूनिट में",
+      "w_nextDay": "अगला दिन",
+      "w_prevDay": "पिछला दिन",
+      "w_notNumber": "नंबर नहीं है",
+      "err_base_range": "बेस 2 से 36 तक का एक पूर्ण नंबर होता है",
+      "err_nothing": "पढ़ने के लिए कुछ नहीं है",
+      "err_prefix_mismatch": "0x/0b/0o प्रीफिक्स बेस {prefix} बता रहा है, लेकिन आप बेस {base} पढ़ रहे हैं",
+      "err_no_digits_after_sign": "साइन के बाद कोई डिजिट नहीं है",
+      "err_two_points": "एक से ज़्यादा पॉइंट हैं",
+      "err_no_digits": "कोई डिजिट नहीं है",
+      "err_bad_digit": "'{digit}' बेस {base} में डिजिट नहीं है",
+      "err_not_a_number": "नंबर नहीं है",
+      "err_unknown_unit": "अनजान यूनिट '{unit}'",
+      "err_wrong_category": "{from} को {to} में कन्वर्ट नहीं किया जा सकता",
+      "err_unknown_zone": "अनजान ज़ोन '{zone}'",
+      "err_bad_time": "समय HH:MM के रूप में दें",
+      "err_unknown_field": "अनजान फील्ड '{field}'"
+    },
+    gu: {
+      "ui_tag": "એક જ પેજ પર દરેક નંબર બેઝ, યુનિટ અને ટાઈમઝોન — અને તેની ગણતરી, જેથી તમે તેને ચકાસી શકો.",
+      "ui_bases": "નંબર બેઝ",
+      "ui_dec": "ડેસિમલ",
+      "ui_hex": "હેક્સ",
+      "ui_bin": "બાઈનરી",
+      "ui_oct": "ઓક્ટલ",
+      "ui_anybase": "કોઈપણ બેઝ 2–36",
+      "ui_thatbase": "તે બેઝ",
+      "ui_working": "ગણતરી",
+      "ui_units": "યુનિટ્સ",
+      "ui_value": "વેલ્યુ",
+      "ui_from": "થી",
+      "ui_to": "સુધી",
+      "ui_time": "ટાઈમઝોન્સ",
+      "ui_clock": "સમય",
+      "ui_take": "તેને તમારી સાથે લઈ જાઓ",
+      "ui_save": "આ કન્વર્ઝન સેવ કરો",
+      "ui_csv": "લોગ એક્સપોર્ટ કરો (CSV)",
+      "ui_clear": "લોગ ક્લિયર કરો",
+      "ui_copy": "હેક્સ કોપી કરો",
+      "ui_keys": "કીઝ",
+      "ui_keys_jump": "ફીલ્ડ પર જાઓ",
+      "ui_keys_panel": "આ પેનલ",
+      "ui_keys_close": "બંધ કરો",
+      "ui_keys_save": "કન્વર્ઝન સેવ કરો",
+      "ui_footer": "ઓફલાઈન. કોઈ એકાઉન્ટ નથી, કોઈ ટેલિમેટ્રી નથી.",
+      "ui_lang": "ભાષા",
+      "ui_dark": "ડાર્ક",
+      "ui_light": "લાઈટ",
+      "ui_theme_to_dark": "ડાર્ક પેલેટ પર સ્વિચ કરો",
+      "ui_theme_to_light": "લાઈટ પેલેટ પર સ્વિચ કરો",
+      "to_copied": "કોપી થઈ ગયું {x}",
+      "to_copyblocked": "બ્રાઉઝર દ્વારા કોપી બ્લોક થઈ ગઈ",
+      "to_copyunavailable": "અહીં કોપી ઉપલબ્ધ નથી",
+      "to_saved": "સેવ થઈ ગયું",
+      "to_nothing": "હજુ એક્સપોર્ટ કરવા માટે કંઈ નથી",
+      "to_cleared": "લોગ ક્લિયર થઈ ગયો",
+      "log_empty": "હજુ કંઈ સેવ નથી થયું — બધું આ ડિવાઇસ પર જ રહે છે.",
+      "log_count": "આ ડિવાઇસ પર {n} સેવ થયેલ છે.",
+      "any_note": "બેઝ {n} અંકો: {d}",
+      "w_remainder": "શેષ",
+      "w_bottomUp": "શેષને નીચેથી ઉપર વાંચો: ",
+      "w_zero": "દરેક બેઝમાં 0 એ 0 છે",
+      "w_wholeFirst": "પહેલા પૂર્ણાંક ભાગ લો: ",
+      "w_inBase": "બેઝ યુનિટમાં",
+      "w_nextDay": "આવતીકાલ",
+      "w_prevDay": "ગઈકાલ",
+      "w_notNumber": "નંબર નથી",
+      "err_base_range": "બેઝ એ 2 થી 36 સુધીનો પૂર્ણ સંખ્યા છે",
+      "err_nothing": "વાંચવા માટે કંઈ નથી",
+      "err_prefix_mismatch": "0x/0b/0o પ્રીફિક્સ બેઝ {prefix} કહે છે, પણ તમે બેઝ {base} વાંચી રહ્યા છો",
+      "err_no_digits_after_sign": "ચિહ્ન પછી કોઈ અંકો નથી",
+      "err_two_points": "એક કરતાં વધુ પોઈન્ટ છે",
+      "err_no_digits": "કોઈ અંકો નથી",
+      "err_bad_digit": "'{digit}' એ બેઝ {base} માં અંક નથી",
+      "err_not_a_number": "નંબર નથી",
+      "err_unknown_unit": "અજાણ્યું યુનિટ '{unit}'",
+      "err_wrong_category": "{from} ને {to} માં કન્વર્ટ કરી શકાતું નથી",
+      "err_unknown_zone": "અજાણ્યો ઝોન '{zone}'",
+      "err_bad_time": "સમય HH:MM તરીકે આપો",
+      "err_unknown_field": "અજાણ્યું ફીલ્ડ '{field}'"
+    }
+  };
+
+  var LANGS = ["en", "hi", "gu"];
+  var lang = "en";
+
+  function t(key) {
+    var d = DICT[lang] || DICT.en;
+    return d[key] != null ? d[key] : DICT.en[key] != null ? DICT.en[key] : key;
+  }
+  /* Named `sub`, not `fill`: the page already has a fill() for the unit
+     selects, and a second declaration of the same name silently wins. */
+  function sub(tpl, params) {
+    return String(tpl).replace(/\{(\w+)\}/g, function (m, k) {
+      return params && params[k] != null ? params[k] : m;
+    });
+  }
+  /* A refusal from the engine, said in the chosen language when it can be. */
+  function say(res) {
+    var tpl = res && res.code ? (DICT[lang] || {})["err_" + res.code] : null;
+    if (!tpl) return (res && res.error) || "";
+    return sub(tpl, res.params);
+  }
+  function applyLang(next, render) {
+    lang = LANGS.indexOf(next) >= 0 ? next : "en";
+    document.documentElement.lang = lang;
+    try { if (window.Loom) Loom.storage.set("lang", lang); } catch (e) {}
+    var nodes = document.querySelectorAll("[data-i18n]");
+    for (var i = 0; i < nodes.length; i++) nodes[i].textContent = t(nodes[i].getAttribute("data-i18n"));
+    $("langSel").value = lang;
+    B.setWords({
+      remainder: t("w_remainder"), bottomUp: t("w_bottomUp"), zero: t("w_zero"),
+      wholeFirst: t("w_wholeFirst"), inBase: t("w_inBase"),
+      nextDay: t("w_nextDay"), prevDay: t("w_prevDay"), notNumber: t("w_notNumber"),
+      baseRange: t("err_base_range")
+    });
+    if (render) { renderBases("dec"); renderUnits(); renderTime(); saveLog(log()); labelTheme(); }
+  }
 
   function toast(msg) {
     var t = $("toast");
@@ -166,7 +414,7 @@
     var v = B.sync(sourceId, $(sourceId).value);
     var err = $("baseErr"), steps = $("steps");
     if (!v.ok) {
-      err.textContent = v.error;
+      err.textContent = say(v);
       steps.innerHTML = "";
       return;
     }
@@ -183,8 +431,8 @@
       li.textContent = line;
       steps.appendChild(li);
     });
-    renderAny(v.value);
-    last = v.value;
+    renderAny(v.big == null ? v.value : v.big);
+    last = v.big == null ? v.value : v.big;
   }
 
   var last = 255;
@@ -193,7 +441,7 @@
     var b = parseInt($("anyBase").value, 10) || 36;
     var shown = B.toBase(value, b);
     $("anyVal").value = shown == null ? "" : shown;
-    $("anyNote").textContent = "base " + b + " digits: " + B.DIGITS.slice(0, b).split("").join(" ");
+    $("anyNote").textContent = sub(t("any_note"), { n: b, d: B.DIGITS.slice(0, b).split("").join(" ") });
   }
 
   fields.forEach(function (f) {
@@ -203,12 +451,12 @@
   $("anyVal").addEventListener("input", function () {
     var b = parseInt($("anyBase").value, 10) || 36;
     var p = B.parse($("anyVal").value, b);
-    if (p.ok) { $("dec").value = B.toBase(p.value, 10); renderBases("dec"); }
+    if (p.ok) { $("dec").value = B.toBase(p.big == null ? p.value : p.big, 10); renderBases("dec"); }
   });
   $("copyBtn").addEventListener("click", function () {
     var text = $("hex").value;
-    if (navigator.clipboard) navigator.clipboard.writeText(text).then(function () { toast("Copied " + text); }, function () { toast("Copy blocked by the browser"); });
-    else toast("Copy is not available here");
+    if (navigator.clipboard) navigator.clipboard.writeText(text).then(function () { toast(sub(t("to_copied"), { x: text })); }, function () { toast(t("to_copyblocked")); });
+    else toast(t("to_copyunavailable"));
   });
 
   /* ---------- units ---------- */
@@ -233,7 +481,7 @@
   function renderUnits() {
     var value = Number(String($("uVal").value).trim());
     var r = B.convert(value, $("uFrom").value, $("uTo").value);
-    if (!r.ok) { $("uOut").textContent = r.error; $("uWork").textContent = ""; return; }
+    if (!r.ok) { $("uOut").textContent = say(r); $("uWork").textContent = ""; return; }
     $("uOut").textContent = B.round(r.value, 8) + " " + $("uTo").value;
     $("uWork").textContent = r.working;
     lastUnit = r.value;
@@ -250,7 +498,7 @@
 
   function renderTime() {
     var r = B.shiftTime($("tClock").value, $("tFrom").value, $("tTo").value);
-    if (!r.ok) { $("tOut").textContent = r.error; $("tWork").textContent = ""; return; }
+    if (!r.ok) { $("tOut").textContent = say(r); $("tWork").textContent = ""; return; }
     var day = r.day === 0 ? "" : r.day > 0 ? " (+1 day)" : " (−1 day)";
     $("tOut").textContent = r.time + " " + $("tTo").value + day;
     $("tWork").textContent = r.working;
@@ -265,24 +513,24 @@
   function log() { return (window.Loom && Loom.storage.get("basebench.log", [])) || []; }
   function saveLog(rows) {
     if (window.Loom) Loom.storage.set("basebench.log", rows);
-    $("logNote").textContent = rows.length ? rows.length + " saved on this device." : "Nothing saved yet — everything stays on this device.";
+    $("logNote").textContent = rows.length ? sub(t("log_count"), { n: rows.length }) : t("log_empty");
   }
 
   $("saveBtn").addEventListener("click", function () {
     var rows = log();
     rows.unshift({ at: new Date().toISOString(), dec: $("dec").value, hex: $("hex").value, bin: $("bin").value, oct: $("oct").value });
     saveLog(rows.slice(0, 200));
-    toast("Saved");
+    toast(t("to_saved"));
   });
 
   $("csvBtn").addEventListener("click", function () {
     var rows = log();
-    if (!rows.length) { toast("Nothing to export yet"); return; }
+    if (!rows.length) { toast(t("to_nothing")); return; }
     var csv = Export.df(rows).toCSV();
     Export.text("basebench.csv", csv);
   });
 
-  $("clearBtn").addEventListener("click", function () { saveLog([]); toast("Log cleared"); });
+  $("clearBtn").addEventListener("click", function () { saveLog([]); toast(t("to_cleared")); });
 
   /* ---------- keys: never steal one from a field ---------- */
   document.addEventListener("keydown", function (e) {
@@ -294,14 +542,14 @@
   });
 
   /* ---------- theme: light base, system first, remembered ---------- */
-  (function () {
+  var labelTheme = (function () {
     var btn = $("themeBtn"), out = $("themeTxt");
-    if (!btn) return;
+    if (!btn) return function () {};
     function label() {
       var dark = document.documentElement.getAttribute("data-theme") === "dark";
       btn.setAttribute("aria-pressed", dark ? "true" : "false");
-      btn.setAttribute("aria-label", dark ? "Switch to the light palette" : "Switch to the dark palette");
-      out.textContent = dark ? "Light" : "Dark";
+      btn.setAttribute("aria-label", dark ? t("ui_theme_to_light") : t("ui_theme_to_dark"));
+      out.textContent = dark ? t("ui_light") : t("ui_dark");
     }
     btn.addEventListener("click", function () {
       var next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
@@ -311,6 +559,13 @@
       label();
     });
     label();
+    return label;
+  })();
+
+  /* ---------- the language ---------- */
+  (function () {
+    var sel = $("langSel");
+    sel.addEventListener("change", function () { applyLang(sel.value, true); });
   })();
 
   /* ---------- the offline shell ----------
@@ -326,6 +581,9 @@
   }
 
   /* ---------- boot ---------- */
+  var savedLang = "en";
+  try { savedLang = (window.Loom && Loom.storage.get("lang", "en")) || "en"; } catch (e) {}
+  applyLang(savedLang, false);
   renderBases("dec");
   renderUnits();
   renderTime();
