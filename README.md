@@ -1,5 +1,7 @@
 # Base Bench
 
+[![License: PolyForm Noncommercial 1.0.0](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-blue)](LICENSE)
+
 <p>
   <a href="https://drsamonline.github.io/base-bench/play/"><img alt="live: online" src="docs/assets/badge-live.svg" height="20"></a>
   <a href="https://github.com/drsamonline/base-bench/actions/workflows/test.yml"><img alt="tests: 116 passing" src="docs/assets/badge-tests.svg" height="20"></a>
