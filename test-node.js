@@ -148,6 +148,37 @@ eq("a western offset keeps its sign", B.zoneLabel("PST"), "UTC-08:00");
 /* ------------------------------------------------------------------ */
 section("the app ships what it says it ships");
 
+/* What a page LOADS and what a page merely LINKS TO are different things.
+ *
+ * The offline promise is about loads: a browser fetches src, srcset, poster,
+ * <link href>, a CSS url(), @import and importScripts by itself. An <a href>
+ * is fetched only if a reader clicks it. This test used to grep every
+ * https?:// in the file, so the estate's support block (Ko-fi, PayPal, the
+ * bookstore, the hub) - four anchors - read as requests the page does not
+ * make. Counting the two separately keeps the promise strict and keeps the
+ * anchors visible. (LEARNINGS 13; app-panchang, app-image-toolkit and
+ * app-poets-studio carry the same fix.) */
+function loadsFrom(text) {
+  var out = [], m, re;
+  re = /\b(?:src|srcset|poster)\s*=\s*["']([^"']+)["']/gi;
+  while ((m = re.exec(text))) out.push(m[1]);
+  re = /<link\b[^>]*\bhref\s*=\s*["']([^"']+)["'][^>]*>/gi;
+  while ((m = re.exec(text))) out.push(m[1]);
+  re = /url\(\s*["']?([^"')]+)["']?\s*\)/gi;
+  while ((m = re.exec(text))) out.push(m[1]);
+  re = /@import\s+(?:url\(\s*)?["']([^"']+)["']/gi;
+  while ((m = re.exec(text))) out.push(m[1]);
+  re = /importScripts\s*\(\s*["']([^"']+)["']/gi;
+  while ((m = re.exec(text))) out.push(m[1]);
+  return out.map(function (u) { return u.trim(); })
+    .filter(function (u) { return /^(?:https?:)?\/\//i.test(u) && !/w3\.org|schema\.org/.test(u); });
+}
+function linksTo(text) {
+  var out = [], m, re = /<a\b[^>]*\bhref\s*=\s*["']([^"']+)["']/gi;
+  while ((m = re.exec(text))) out.push(m[1].trim());
+  return out.filter(function (u) { return /^(?:https?:)?\/\//i.test(u); });
+}
+
 var dir = path.join(__dirname, "docs", "play");
 ["index.html", "basebench.js", "web-kit.js", "export-kit.js"].forEach(function (f) {
   ok("docs/play/" + f + " exists", fs.existsSync(path.join(dir, f)) && fs.statSync(path.join(dir, f)).size > 0);
@@ -160,7 +191,11 @@ var html = fs.readFileSync(path.join(dir, "index.html"), "utf8");
   ok("the page has the " + id + " field the done-means names", html.indexOf('id="' + id + '"') >= 0);
 });
 ok("the page has a viewport, so it works on a phone", html.indexOf('name="viewport"') >= 0);
-ok("the page makes no network request", !/https?:\/\//.test(html.replace(/https?:\/\/[^"'\s]*(w3\.org|schema\.org)[^"'\s]*/g, "")));
+eq("the page loads nothing from the network", loadsFrom(html), []);
+var anchors = linksTo(html);
+ok("the page's support block is anchors, not loads", anchors.length >= 3 && anchors.every(function (u) {
+  return loadsFrom(html).indexOf(u) < 0;
+}), anchors.join(" "));
 
 /* ------------------------------------------------------------------ */
 section("exactness: any length of integer, and never a rounded one");
@@ -227,9 +262,22 @@ ok("the page declares a policy that allows no network at all",
 
 var remote = ["index.html", "basebench.js", "web-kit.js", "export-kit.js", "sw.js"].filter(function (f) {
   var body = fs.readFileSync(path.join(dir, f), "utf8");
-  return /https?:\/\//.test(body.replace(/https?:\/\/[^"'\s]*(w3\.org|schema\.org)[^"'\s]*/g, ""));
+  return loadsFrom(body).length > 0;
 });
-ok("no file in the app names a remote address", remote.length === 0, "in: " + remote.join(", "));
+ok("no file in the app LOADS a remote address", remote.length === 0, "in: " + remote.join(", "));
+var linked = ["index.html", "basebench.js", "web-kit.js", "export-kit.js", "sw.js"].filter(function (f) {
+  return linksTo(fs.readFileSync(path.join(dir, f), "utf8")).length > 0;
+});
+ok("and only the page carries them, as links a reader may follow", linked.join(",") === "index.html", linked.join(","));
+
+/* The CSP forbids the network; this asserts the code never asks for it in the
+ * first place, so the promise does not rest on the browser honouring a header.
+ * sw.js is exempt on purpose: its whole job is to answer fetch(req) from cache. */
+var callers = ["basebench.js", "web-kit.js", "export-kit.js"].filter(function (f) {
+  var body = fs.readFileSync(path.join(dir, f), "utf8");
+  return /(?:^|[^.\w$])(?:fetch|XMLHttpRequest|WebSocket|EventSource)\s*\(/.test(body);
+});
+ok("no app script opens the network of its own accord", callers.length === 0, "in: " + callers.join(","));
 
 var css = (html.match(/<style[\s\S]*?<\/style>/g) || []).join("\n");
 ok("no webfont and no url() for the styles to fetch",
