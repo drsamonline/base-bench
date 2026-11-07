@@ -38,7 +38,7 @@ jobs:
   app:
     # fbb5468 is the app-builder commit that adds the `release_notes` input; it is
     # the previous pin plus that one change, so nothing else moves with it.
-    uses: drsamonline/app-builder/.github/workflows/build.yml@fbb5468c1140c9da7421e3fc5927c12efb4c01c1
+    uses: drsamonline/app-builder/.github/workflows/build.yml@bbef0db943e11f1a280ac8a063b79e66b7f6d9db
     with:
       app_name: base-bench
       app_src: docs/play
