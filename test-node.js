@@ -146,6 +146,20 @@ eq("the offset is labelled the way a person writes it", B.zoneLabel("IST"), "UTC
 eq("a western offset keeps its sign", B.zoneLabel("PST"), "UTC-08:00");
 
 /* ------------------------------------------------------------------ */
+/* A link the reader chooses to click is a navigation, not something the page
+ * loads. The support block is the one place the estate allows an outbound
+ * address, and it is on the page deliberately - it carries every way to reach
+ * the author. What must never appear is a REMOTE RESOURCE: a src, a url(), an
+ * @import, a fetch. Those are still caught, because only anchor tags are
+ * stripped here, and the CSP (default-src 'none') is what stops the page
+ * fetching even if one slipped in.
+ */
+function withoutUserLinks(body) {
+  return body.replace(/<a\b[^>]*>/gi, "<a>");
+}
+
+var REMOTE = /https?:\/\//;
+
 section("the app ships what it says it ships");
 
 var dir = path.join(__dirname, "docs", "play");
@@ -160,7 +174,12 @@ var html = fs.readFileSync(path.join(dir, "index.html"), "utf8");
   ok("the page has the " + id + " field the done-means names", html.indexOf('id="' + id + '"') >= 0);
 });
 ok("the page has a viewport, so it works on a phone", html.indexOf('name="viewport"') >= 0);
-ok("the page makes no network request", !/https?:\/\//.test(html.replace(/https?:\/\/[^"'\s]*(w3\.org|schema\.org)[^"'\s]*/g, "")));
+ok("the page loads nothing from a remote address",
+  !REMOTE.test(withoutUserLinks(html).replace(/https?:\/\/[^"'\s]*(w3\.org|schema\.org)[^"'\s]*/g, "")));
+var outbound = (html.match(/<a\b[^>]*href="https?:\/\/[^"]*"[^>]*>/gi) || []);
+ok("every outbound link opens in a new tab without handing over the referrer",
+  outbound.every(function (a) { return /target="_blank"/.test(a) && /rel="noopener noreferrer"/.test(a); }),
+  "offending: " + outbound.filter(function (a) { return !/noopener noreferrer/.test(a); }).join(" | "));
 
 /* ------------------------------------------------------------------ */
 section("exactness: any length of integer, and never a rounded one");
@@ -226,8 +245,8 @@ ok("the page declares a policy that allows no network at all",
   /Content-Security-Policy/.test(html) && /default-src 'none'/.test(html) && /connect-src 'none'/.test(html));
 
 var remote = ["index.html", "basebench.js", "web-kit.js", "export-kit.js", "sw.js"].filter(function (f) {
-  var body = fs.readFileSync(path.join(dir, f), "utf8");
-  return /https?:\/\//.test(body.replace(/https?:\/\/[^"'\s]*(w3\.org|schema\.org)[^"'\s]*/g, ""));
+  var body = withoutUserLinks(fs.readFileSync(path.join(dir, f), "utf8"));
+  return REMOTE.test(body.replace(/https?:\/\/[^"'\s]*(w3\.org|schema\.org)[^"'\s]*/g, ""));
 });
 ok("no file in the app names a remote address", remote.length === 0, "in: " + remote.join(", "));
 
