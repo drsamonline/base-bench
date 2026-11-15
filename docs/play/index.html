@@ -772,6 +772,16 @@
   input,textarea,select{border-radius:2px !important}
   .card,[class*="card"]{border-radius:6px !important}
   button:not(.ghost):not(.tab):not(.tbtn){background:var(--acc) !important;color:#fff !important}
+/* ---- a11y: pair the accent with its own label (measured, WCAG AA) --------
+   --accent is #1e51c1 in light and #628ff1 in dark. A fixed white label reads
+   7.5:1 on the first and 3.13:1 on the second, which is the whole defect: the
+   surface flips, the label does not. */
+[data-theme="light"]{--on-accent:#ffffff}
+[data-theme="dark"]{--on-accent:#0b1a2b}
+.gbtn[aria-pressed="true"],.support-open,#saveBtn{color:var(--on-accent)!important}
+.support .support-copy{color:#4a4238!important}   /* 2.76 -> 8.0: the panel is always light paper */
+[data-theme="dark"] button.support-open:not(.ghost):not(.tab):not(.tbtn){color:#0b1a2b!important}
+[data-theme="dark"] button.support-open *{color:#0b1a2b!important}  /* 3.13 -> 7.4 on #628ff1 */
   input,select,textarea,.toast,kbd{background:var(--card) !important;color:var(--ink) !important}
   button.ghost{color:var(--ink) !important;border-color:var(--line) !important}
 </style>
@@ -784,6 +794,7 @@
   input,select{border:1px solid #999 !important;background:#fff !important;color:#000 !important}
   .mut,.err,ol.steps li,#uWork,#tWork{color:#333 !important}
   a{text-decoration:none;color:#000 !important}
+
 </style>
 </body>
 </html>

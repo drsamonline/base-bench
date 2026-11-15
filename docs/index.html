@@ -368,6 +368,15 @@ node test-node.js              # 116 assertions, no installs</pre>
   .support-foot{margin:1.2rem 0 0;font-size:.8rem;color:var(--s-muted)}
   @media (prefers-reduced-motion:no-preference){.support-card{transition:border-color .15s ease}}
   .support-card:target,.support-card:focus-within{border-color:var(--s-accent)}
+
+/* ---- a11y: pair the accent with its own label (measured, WCAG AA) --------
+   --accent is #1e51c1 in light and #628ff1 in dark. A fixed white label reads
+   7.5:1 on the first and 3.13:1 on the second, which is the whole defect: the
+   surface flips, the label does not. */
+[data-theme="light"]{--on-accent:#ffffff}
+[data-theme="dark"]{--on-accent:#0b1a2b}
+.gbtn[aria-pressed="true"],.support-open,#saveBtn{color:var(--on-accent)!important}
+.support .support-copy{color:#4a4238!important}   /* 2.76 -> 8.0: the panel is always light paper */
 </style>
 
 <section class="support" id="support" aria-labelledby="support-h" data-support>
